@@ -13,5 +13,5 @@ async def read_user():
 
 @user_controller.get('/{auth_code}', description="OAuth login")
 async def login(auth_code):
-    return user_service.login(auth_code)
-
+    response = await user_service.login(auth_code)
+    return response

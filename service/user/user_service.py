@@ -10,11 +10,16 @@ class UserService:
         self.auth_service = AuthService()
 
     async def login(self, auth_code):
-        async with httpx.AsyncClient() as client:
-            token = await self.auth_service.get_token(client, auth_code)
-            print(token)
-            user_info = await self.auth_service.get_user(client, token)
-            print(user_info)
-            return user_info
+        # async with httpx.AsyncClient() as client:
+        #     token = await self.auth_service.get_token(client, auth_code)
+        #     print(token)
+        #     user_info = await self.auth_service.get_user(client, token)
+        #     print(user_info)
+        #     return user_info
+        token = await self.auth_service.get_token(auth_code)
+        print(token)
+        user_info = await self.auth_service.get_user(token)
+        print(user_info)
+        return user_info
 
 
