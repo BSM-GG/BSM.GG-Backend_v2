@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from presentation.user.user_controller import user_controller
+from controller.user.user_controller import user_controller
+
 
 app = FastAPI()
 
@@ -18,11 +19,6 @@ app.add_middleware(
 )
 
 app.include_router(user_controller)
-
-
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
 
 
 @app.get("/hello/{name}")
