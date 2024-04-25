@@ -1,6 +1,6 @@
 from fastapi import FastAPI, APIRouter
 
-from controller.user.model.user_model import UserModel
+from controller.user.model.user_model import UserModel, UserCreate
 from service.user.user_service import UserService
 
 user_controller = APIRouter(prefix="/api/user", tags=["user"])
@@ -8,8 +8,8 @@ user_service = UserService()
 
 
 @user_controller.post('', description="대충 유저 등록")
-async def assign_user(auth_code: str, game_name: str, tag_line: str):
-    response = await user_service.assign_user(auth_code, game_name, tag_line)
+async def assign_user(user: UserCreate):
+    response = await user_service.assign_user(user.auth_code, user.game_name, user.tag_line)
     return response
 
 

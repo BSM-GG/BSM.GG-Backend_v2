@@ -4,6 +4,7 @@ import uuid
 import requests
 from dotenv import load_dotenv
 
+from controller.user.model.user_model import UserModel
 from repository.user.user_repository import UserRepository
 from service.user.auth_service import AuthService
 
@@ -13,7 +14,7 @@ load_dotenv()
 class UserService:
 
     def __init__(self):
-        self.api_key = os.environ["API_KEY"]
+        self.api_key = os.getenv("API_KEY")
         self.kr_url = os.getenv("KR_URL")
         self.asia_url = os.getenv("ASIA_URL")
 
@@ -27,15 +28,15 @@ class UserService:
                 "code": "403",
                 "message": "Invalid Authorization Code"
             }
-
         user_info = await self.auth_service.get_user(token)
+        user_model = UserModel(user_info)
 
-        response = requests.get(f"{self.asia_url}/account/v1/accounts/by-riot-id/{game_name}/{tag_line}?api_key={self.api_key}")
-        if response.json().get("status_code") != "200":
+        response = requests.get(f"{self.asia_url}/account/v1/accounts/by-riot-id/{game_name}/{tag_line}?api_key={self.api_key}").json()
+        if response.get("status_code") == 404:
             return {
                 "code": "404",
-                "message": "User Not Found"
+                "message": "User Not Found By Riot API"
             }
 
         new_uuid = str(uuid.uuid4()).replace("-", "")
-        return self.user_repository.create_user(new_uuid, user_info, response.json().text())
+        return self.user_repository.create_user(new_uuid, user_model, response)

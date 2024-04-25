@@ -26,14 +26,10 @@ class User(Base):
     # util
     last_updated = Column(String(30))
 
-    # def __init__(self, uuid, code, email, nickname, name, role):
-    #     this.uuid = uuid
-
-class Summoner(Base):
-    __tablename__ = 'summoner'
-
-
     # riot info
     puuid = Column(String(100))
     game_name = Column(String(20))
     tag_line = Column(String(20))
+
+    # def __init__(self, uuid, code, email, nickname, name, role):
+    #     this.uuid = uuid

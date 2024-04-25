@@ -1,6 +1,12 @@
 from pydantic import BaseModel
 
 
+class UserCreate(BaseModel):
+    auth_code: str
+    game_name: str
+    tag_line: str
+
+
 class UserModel:
     def __init__(self, user_info):
         self.code = user_info.get("code")
