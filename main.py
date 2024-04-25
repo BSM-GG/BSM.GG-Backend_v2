@@ -2,7 +2,8 @@ from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
 from controller.user.user_controller import user_controller
-
+from domain.user.user_table import Base
+from database import SessionLocal, engine
 
 app = FastAPI()
 
@@ -18,6 +19,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+Base.metadata.create_all(bind=engine)
 app.include_router(user_controller)
 
 

@@ -1,5 +1,8 @@
 import os
 import requests
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class AuthService:
@@ -11,26 +14,21 @@ class AuthService:
     async def get_token(self, auth_code: str):
         response = requests.post(
             'https://auth.bssm.kro.kr/api/oauth/token',
-                json={
-                    "clientId": self.client_id,
-                    "clientSecret": self.client_secret,
-                    "authCode": auth_code
-                }
+            json={
+                "clientId": self.client_id,
+                "clientSecret": self.client_secret,
+                "authCode": auth_code
+            }
         )
-        print(response.json())
         return response.json().get('token')
 
     async def get_user(self, token):
-        # response = client.post("https://auth.bssm.kro.kr/api/oauth",
-        #                        json={
-        #                            "client_id": self.client_id,
-        #                            "client_secret": self.client_secret,
-        #                            "token": token
-        #                        })
-        response = requests.post('https://auth.bssm.kro.kr/api/oauth/resource',
-                                json={
-                                    "clientId": self.client_id,
-                                    "clientSecret": self.client_secret,
-                                    "token": token
-                                })
-        return response.json()
+        response = requests.post(
+            'https://auth.bssm.kro.kr/api/oauth/resource',
+            json={
+                "clientId": self.client_id,
+                "clientSecret": self.client_secret,
+                "token": token
+            }
+        )
+        return response.json().get('user')
