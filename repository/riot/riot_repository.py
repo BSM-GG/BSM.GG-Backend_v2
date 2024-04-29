@@ -1,6 +1,5 @@
 from database import get_db
 from domain.tables import Summoner
-import time
 
 
 class RiotRepository:

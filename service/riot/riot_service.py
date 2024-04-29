@@ -1,7 +1,6 @@
-import os
-
-import requests
 import json
+import os
+import requests
 from dotenv import load_dotenv
 
 from repository.riot.riot_repository import RiotRepository

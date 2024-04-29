@@ -1,6 +1,6 @@
 from fastapi import FastAPI, APIRouter
 
-from controller.user.model.user_model import UserModel, UserCreate
+from controller.user.model.user_model import UserCreate
 from service.user.user_service import UserService
 
 user_controller = APIRouter(prefix="/api/user", tags=["user"])

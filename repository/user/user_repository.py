@@ -1,5 +1,3 @@
-from controller.user.model import user_model
-from controller.user.model.user_model import UserModel
 from database import get_db
 from domain.tables import User
 import time
@@ -9,7 +7,7 @@ class UserRepository:
     def __init__(self):
         self.db = next(get_db())
 
-    def save(self, user_model: UserModel, puuid: str):
+    def save(self, user_model, puuid: str):
         db_user = User(
             puuid=puuid,
             code=user_model.code,

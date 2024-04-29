@@ -1,12 +1,8 @@
 import os
-import uuid
-
-import requests
 from dotenv import load_dotenv
 
 from controller.user.model.user_model import UserModel
 from repository.user.user_repository import UserRepository
-from service.riot import riot_service
 from service.riot.riot_service import RiotService
 from service.user.auth_service import AuthService
 
