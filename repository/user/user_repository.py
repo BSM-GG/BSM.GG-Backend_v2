@@ -1,19 +1,17 @@
-import uuid
-from uuid import UUID
-
+from controller.user.model import user_model
 from controller.user.model.user_model import UserModel
 from database import get_db
-from domain.user.user_table import User
-
+from domain.tables import User
+import time
 
 class UserRepository:
 
     def __init__(self):
         self.db = next(get_db())
 
-    def create_user(self, new_uuid: str, user_model: UserModel, response):
+    def save(self, user_model: UserModel, puuid: str):
         db_user = User(
-            uuid=new_uuid,
+            puuid=puuid,
             code=user_model.code,
             email=user_model.email,
             nickname=user_model.nickname,
@@ -23,17 +21,11 @@ class UserRepository:
             grade=user_model.grade,
             class_no=user_model.class_no,
             student_no=user_model.student_no,
-            puuid=response.get("puuid"),
-            game_name=response.get("gameName"),
-            tag_line=response.get("tagLine")
+            last_updated=str(time.time()).split(".")[0]
         )
         self.db.add(db_user)
         self.db.commit()
         self.db.refresh(db_user)
-        return {
-            "code": "200",
-            "uuid": f"success"
-        }
 
-    def update_riot_account(self, response):
-        pass
+    def get_user(self, email: str):
+        self.db.query(User).filter(User.email == email)

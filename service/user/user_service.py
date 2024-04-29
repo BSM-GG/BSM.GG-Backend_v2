@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 
 from controller.user.model.user_model import UserModel
 from repository.user.user_repository import UserRepository
+from service.riot import riot_service
+from service.riot.riot_service import RiotService
 from service.user.auth_service import AuthService
 
 load_dotenv()
@@ -20,6 +22,7 @@ class UserService:
 
         self.auth_service = AuthService()
         self.user_repository = UserRepository()
+        self.riot_service = RiotService()
 
     async def assign_user(self, auth_code: str, game_name: str, tag_line: str):
         token = await self.auth_service.get_token(auth_code)
@@ -31,12 +34,14 @@ class UserService:
         user_info = await self.auth_service.get_user(token)
         user_model = UserModel(user_info)
 
-        response = requests.get(f"{self.asia_url}/account/v1/accounts/by-riot-id/{game_name}/{tag_line}?api_key={self.api_key}").json()
+        response = await self.riot_service.get_riot_account(game_name, tag_line)
         if response.get("status_code") == 404:
             return {
                 "code": "404",
                 "message": "User Not Found By Riot API"
             }
 
-        new_uuid = str(uuid.uuid4()).replace("-", "")
-        return self.user_repository.create_user(new_uuid, user_model, response)
+        puuid = response.get("puuid")
+        self.user_repository.save(user_model, puuid)
+
+
