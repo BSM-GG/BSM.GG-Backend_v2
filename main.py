@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
+from controller.riot.riot_controller import riot_controller
 from controller.user.user_controller import user_controller
 from domain.tables import Base
 from database import engine
@@ -21,6 +22,7 @@ app.add_middleware(
 
 Base.metadata.create_all(bind=engine)
 app.include_router(user_controller)
+app.include_router(riot_controller)
 
 
 @app.get("/hello/{name}")

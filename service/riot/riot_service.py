@@ -33,13 +33,10 @@ class RiotService:
         return json.loads(response.text)
 
     async def get_rank_info(self, id: str):
-        response = requests.get(
-            f"{self.kr_url}/league/v4/entries/by-summoner/{id}"
-        )
+        response = requests.get(f"{self.kr_url}/league/v4/entries/by-summoner/{id}?api_key={self.api_key}")
         return json.loads(response.text)
 
-    async def create_summoner(self, puuid: str, email: str):
-        user = self.user_repository.get_user(email)
+    async def create_summoner(self, puuid: str, game_name, tag_line):
         summoner_info = await self.get_summoner_info(puuid)
         rank_info = await self.get_rank_info(summoner_info["id"])
 

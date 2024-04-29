@@ -44,4 +44,4 @@ class UserService:
         puuid = response.get("puuid")
         self.user_repository.save(user_model, puuid)
 
-
+        await self.riot_service.create_summoner(puuid, game_name, tag_line)

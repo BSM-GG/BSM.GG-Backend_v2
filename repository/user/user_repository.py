@@ -27,5 +27,5 @@ class UserRepository:
         self.db.commit()
         self.db.refresh(db_user)
 
-    def get_user(self, email: str):
-        self.db.query(User).filter(User.email == email)
+    def get_user_by_email(self, email: str):
+        return self.db.query(User).filter(User.email == email).first()

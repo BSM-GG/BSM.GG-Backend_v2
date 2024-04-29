@@ -9,5 +9,5 @@ riot_service = RiotService()
 
 
 @riot_controller.post('', description="대충 유저 등록")
-async def assign_riot(email: str):
-    return await riot_service.create_summoner()
+async def assign_riot(email: str, game_name, tag_line):
+    return await riot_service.create_summoner(email, game_name, tag_line)

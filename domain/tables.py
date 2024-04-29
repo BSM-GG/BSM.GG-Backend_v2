@@ -36,6 +36,7 @@ class Summoner(Base):
     puuid = Column(String(100), primary_key=True)
 
     # riot info
+    id = Column(String(100))
     game_name = Column(String(20))
     tag_line = Column(String(20))
     profile_icon = Column(Integer)
