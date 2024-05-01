@@ -2,6 +2,7 @@ from database import get_db
 from domain.tables import User
 import time
 
+
 class UserRepository:
 
     def __init__(self):
@@ -19,11 +20,14 @@ class UserRepository:
             grade=user_model.grade,
             class_no=user_model.class_no,
             student_no=user_model.student_no,
-            last_updated=str(time.time()).split(".")[0]
         )
         self.db.add(db_user)
         self.db.commit()
         self.db.refresh(db_user)
 
-    def get_user_by_email(self, email: str):
+    async def get_user_by_email(self, email: str):
         return self.db.query(User).filter(User.email == email).first()
+
+    async def find_user_by_puuid(self, puuid):
+        return self.db.query(User).filter(User.puuid == puuid).first()
+

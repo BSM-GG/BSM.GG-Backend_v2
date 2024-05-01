@@ -1,5 +1,5 @@
 from database import get_db
-from domain.tables import Summoner
+from domain.tables import Summoner, Match
 
 
 class RiotRepository:
@@ -21,4 +21,25 @@ class RiotRepository:
         self.db.add(db_summoner)
         self.db.commit()
         self.db.refresh(db_summoner)
+
+    async def get_summoner_by_name_and_tag(self, game_name, tag_line):
+        return self.db.query(Summoner).filter(Summoner.game_name == game_name).filter(Summoner.tag_line == tag_line).first()
+
+    def save_match(self, match_id, game_start_at, game_end_at, game_duration, game_type):
+        db_match = Match(
+            match_id=match_id,
+            game_start_at=game_start_at,
+            game_end_at=game_end_at,
+            game_duration=game_duration,
+            game_type=game_type,
+        )
+        self.db.add(db_match)
+        self.db.commit()
+        self.db.refresh(db_match)
+
+    def save_participant(self, db_participant):
+        self.db.add(db_participant)
+        self.db.commit()
+        self.db.refresh(db_participant)
+
 

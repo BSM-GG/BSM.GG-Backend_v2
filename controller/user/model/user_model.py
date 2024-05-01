@@ -15,7 +15,8 @@ class UserModel:
         self.name = user_info.get("name")
         self.role = user_info.get("role")
 
-        if self.role == "TEACHER": return
+        if self.role == "TEACHER":
+            return
         self.enrolled_at = user_info.get("enrolledAt")
         self.grade = user_info.get("grade")
         self.class_no = user_info.get("classNo")
