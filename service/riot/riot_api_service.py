@@ -25,10 +25,6 @@ class RiotAPIService:
         )
         return response.json()
 
-    async def find_summoner(self, game_name: str, tag_line: str):
-        puuid = await self.riot_repository.get_summoner_by_name_and_tag(game_name, tag_line)
-        return puuid
-
     async def get_summoner_info_by_riotAPI(self, puuid: str):
         response = requests.get(
             f"{self.kr_url}/summoner/v4/summoners/by-puuid/{puuid}?api_key={self.api_key}"
@@ -46,11 +42,3 @@ class RiotAPIService:
     async def get_match_data_by_riotAPI(self, match_id: str):
         response = requests.get(f"{self.asia_lol_url}/match/v5/matches/{match_id}?api_key={self.api_key}")
         return json.loads(response.text)
-
-    async def find_match(self, match_id: str):
-        match = self.riot_repository.find_match_by_id(match_id)
-        return match
-
-    async def find_participant(self, puuid: str, match_id: str):
-        participant = self.riot_repository.find_participant_by_ids(puuid, match_id)
-        return participant

@@ -6,6 +6,7 @@ from repository.riot.riot_repository import RiotRepository
 from repository.user.user_repository import UserRepository
 from service.riot.mapping.name_mapping import QUEUE_TYPE, PERKS, SPELL_NAME
 from service.riot.riot_api_service import RiotAPIService
+from service.riot.riot_get_service import RiotGetService
 
 load_dotenv()
 
@@ -19,6 +20,7 @@ class RiotService:
         self.season_started_time = os.getenv("SEASON_STARTED_TIME")
 
         self.riot_api_service = RiotAPIService()
+        self.riot_get_service = RiotGetService()
         self.user_get_service = UserRepository()
         self.riot_repository = RiotRepository()
         self.user_repository = UserRepository()
@@ -32,7 +34,7 @@ class RiotService:
 
     async def update_record(self, game_name: str, tag_line: str):
 
-        summoner = await self.riot_api_service.find_summoner(game_name, tag_line)
+        summoner = await self.riot_get_service.find_summoner(game_name, tag_line)
         if not summoner:
             return {
                 "code": "404",
@@ -46,7 +48,7 @@ class RiotService:
 
             last_match_time = ""
             for match_id in matches:
-                if await self.riot_api_service.find_match(match_id):
+                if await self.riot_get_service.find_match(match_id):
                     continue
                 match = await self.riot_api_service.get_match_data_by_riotAPI(match_id)
 
@@ -60,8 +62,9 @@ class RiotService:
                 participants = match["info"]["participants"]
                 for participant in participants:
                     puuid = participant["puuid"]
-                    if await self.riot_api_service.find_participant(puuid, match_id):
+                    if await self.riot_get_service.find_participant(puuid, match_id):
                         continue
+
                     main_perks = participant["perks"]["styles"][0]["selections"]
                     sub_perks = participant["perks"]["styles"][1]["selections"]
                     db_participant = Participant(
