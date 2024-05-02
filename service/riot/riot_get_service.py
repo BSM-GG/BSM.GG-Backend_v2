@@ -11,7 +11,7 @@ class RiotGetService:
         self.riot_repository = RiotRepository()
 
     async def find_summoner(self, game_name: str, tag_line: str):
-        puuid = await self.riot_repository.get_summoner_by_name_and_tag(game_name, tag_line)
+        puuid = await self.riot_repository.find_summoner_by_name_and_tag(game_name, tag_line)
         return puuid
 
     async def find_match(self, match_id: str):

@@ -40,8 +40,8 @@ class UserService:
                 "code": "404",
                 "message": "User Not Found By Riot API"
             }
-
         puuid = response.get("puuid")
+
         if await self.user_get_service.get_user(puuid):
             return {
                 "code": "409",

@@ -17,8 +17,6 @@ class RiotAPIService:
         self.asia_lol_url = os.getenv("ASIA_LOL_URL")
         self.asia_riot_url = os.getenv("ASIA_RIOT_URL")
 
-        self.riot_repository = RiotRepository()
-
     async def get_riot_account_by_riotAPI(self, game_name: str, tag_line: str):
         response = requests.get(
             f"{self.asia_riot_url}/account/v1/accounts/by-riot-id/{game_name}/{tag_line}?api_key={self.api_key}"
