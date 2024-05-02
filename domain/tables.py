@@ -40,13 +40,6 @@ class Summoner(Base):
     most1 = Column(String(50))
     most2 = Column(String(50))
     most3 = Column(String(50))
-    # win_rate = Column(Integer)
-    # win_games = Column(Integer)
-    # lose_game = Column(Integer)
-    # kill = Column(Integer)
-    # death = Column(Integer)
-    # assist = Column(Integer)
-    # play_time = Column(Integer)
 
     # util
     last_updated = Column(String(30), default=1713582000)

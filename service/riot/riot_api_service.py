@@ -9,7 +9,7 @@ from repository.riot.riot_repository import RiotRepository
 load_dotenv()
 
 
-class RiotGetService:
+class RiotAPIService:
 
     def __init__(self):
         self.api_key = os.getenv("API_KEY")
@@ -19,13 +19,13 @@ class RiotGetService:
 
         self.riot_repository = RiotRepository()
 
-    async def get_riot_account(self, game_name: str, tag_line: str):
+    async def get_riot_account_by_riotAPI(self, game_name: str, tag_line: str):
         response = requests.get(
             f"{self.asia_riot_url}/account/v1/accounts/by-riot-id/{game_name}/{tag_line}?api_key={self.api_key}"
         )
         return response.json()
 
-    async def get_summoner(self, game_name: str, tag_line: str):
+    async def find_summoner(self, game_name: str, tag_line: str):
         puuid = await self.riot_repository.get_summoner_by_name_and_tag(game_name, tag_line)
         return puuid
 

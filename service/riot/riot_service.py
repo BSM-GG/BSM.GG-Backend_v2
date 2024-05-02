@@ -1,14 +1,11 @@
-import json
 import os
-import requests
 from dotenv import load_dotenv
 
 from domain.tables import Participant
-from repository.riot import riot_repository
 from repository.riot.riot_repository import RiotRepository
 from repository.user.user_repository import UserRepository
 from service.riot.mapping.name_mapping import QUEUE_TYPE, PERKS, SPELL_NAME
-from service.riot.riot_get_service import RiotGetService
+from service.riot.riot_api_service import RiotAPIService
 
 load_dotenv()
 
@@ -21,37 +18,37 @@ class RiotService:
         self.asia_url = os.getenv("ASIA_URL")
         self.season_started_time = os.getenv("SEASON_STARTED_TIME")
 
-        self.riot_get_service = RiotGetService()
+        self.riot_api_service = RiotAPIService()
         self.user_get_service = UserRepository()
         self.riot_repository = RiotRepository()
         self.user_repository = UserRepository()
 
     async def create_summoner(self, puuid: str, game_name: str, tag_line: str):
-        summoner_info = await self.riot_get_service.get_summoner_info_by_riotAPI(puuid)
-        rank_info = await self.riot_get_service.get_rank_info_by_riotAPI(summoner_info["id"])
+        summoner_info = await self.riot_api_service.get_summoner_info_by_riotAPI(puuid)
+        rank_info = await self.riot_api_service.get_rank_info_by_riotAPI(summoner_info["id"])
 
         rank_info = rank_info[["queueType"] == "RANKED_SOLO_5x5"]
         self.riot_repository.save(summoner_info, rank_info, game_name, tag_line)
 
     async def update_record(self, game_name: str, tag_line: str):
 
-        summoner = await self.riot_get_service.get_summoner(game_name, tag_line)
+        summoner = await self.riot_api_service.find_summoner(game_name, tag_line)
         if not summoner:
             return {
                 "code": "404",
                 "message": "Cannot Find Summoner"
             }
 
-        matches = await self.riot_get_service.get_matches_by_riotAPI(summoner.puuid, summoner.last_updated)
+        matches = await self.riot_api_service.get_matches_by_riotAPI(summoner.puuid, summoner.last_updated)
         while True:
             if len(matches) == 0:
                 return
 
             last_match_time = ""
             for match_id in matches:
-                if await self.riot_get_service.find_match(match_id):
+                if await self.riot_api_service.find_match(match_id):
                     continue
-                match = await self.riot_get_service.get_match_data_by_riotAPI(match_id)
+                match = await self.riot_api_service.get_match_data_by_riotAPI(match_id)
 
                 # match info
                 game_start_at = int(str(match["info"]["gameCreation"])[:-4])
@@ -63,7 +60,7 @@ class RiotService:
                 participants = match["info"]["participants"]
                 for participant in participants:
                     puuid = participant["puuid"]
-                    if await self.riot_get_service.find_participant(puuid, match_id):
+                    if await self.riot_api_service.find_participant(puuid, match_id):
                         continue
                     main_perks = participant["perks"]["styles"][0]["selections"]
                     sub_perks = participant["perks"]["styles"][1]["selections"]
