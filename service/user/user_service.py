@@ -50,5 +50,5 @@ class UserService:
             }
         self.user_repository.save(user_model, puuid)
 
-        await run_in_threadpool(self.riot_service.create_summoner, puuid, game_name, tag_line)
-        await run_in_threadpool(self.riot_service.update_record, game_name, tag_line)
+        await self.riot_service.create_summoner(puuid, game_name, tag_line)
+        await self.riot_service.update_record(game_name, tag_line)

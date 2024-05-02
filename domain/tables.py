@@ -49,10 +49,7 @@ class Summoner(Base):
     # play_time = Column(Integer)
 
     # util
-    last_updated = Column(String(30), default=1704855600000)
-
-    # relationship
-    participant = relationship("Participant", back_populates="summoner")
+    last_updated = Column(String(30), default=1713582000)
 
 
 class Match(Base):
@@ -73,7 +70,7 @@ class Match(Base):
 class Participant(Base):
     __tablename__ = 'participant'
     # riot puuid
-    puuid = Column(String(100), ForeignKey("summoner.puuid"), primary_key=True)
+    puuid = Column(String(100), primary_key=True)
 
     # match id
     match_id = Column(String(100), ForeignKey("match.match_id"), primary_key=True)
@@ -107,7 +104,6 @@ class Participant(Base):
     main_perk_part1 = Column(String(50))
     main_perk_part2 = Column(String(50))
     main_perk_part3 = Column(String(50))
-    sub_perk = Column(String(50))
     sub_perk_part1 = Column(String(50))
     sub_perk_part2 = Column(String(50))
     offense_perk = Column(Integer)
@@ -115,5 +111,4 @@ class Participant(Base):
     defense_perk = Column(Integer)
 
     # relationship
-    summoner = relationship("Summoner", back_populates="participant")
     match = relationship("Match", back_populates="participant")
