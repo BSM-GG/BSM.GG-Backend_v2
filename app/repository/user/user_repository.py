@@ -1,6 +1,5 @@
-from database import get_db
-from domain.tables import User
-import time
+from app.database import get_db
+from app.domain.tables import User
 
 
 class UserRepository:

@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from controller.riot.riot_controller import riot_controller
-from controller.user.user_controller import user_controller
-from domain.tables import Base
-from database import engine
+from app.controller.riot.riot_controller import riot_controller
+from app.controller.user.user_controller import user_controller
+from app.domain.tables import Base
+from app.database import engine
 
 app = FastAPI()
 

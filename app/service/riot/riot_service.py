@@ -1,12 +1,12 @@
 import os
 from dotenv import load_dotenv
 
-from domain.tables import Participant
-from repository.riot.riot_repository import RiotRepository
-from repository.user.user_repository import UserRepository
-from service.riot.mapping.name_mapping import QUEUE_TYPE, PERKS, SPELL_NAME
-from service.riot.riot_api_service import RiotAPIService
-from service.riot.riot_get_service import RiotGetService
+from app.domain.tables import Participant
+from app.repository.riot.riot_repository import RiotRepository
+from app.repository.user.user_repository import UserRepository
+from app.service.riot.mapping.name_mapping import QUEUE_TYPE, PERKS, SPELL_NAME
+from app.service.riot.riot_api_service import RiotAPIService
+from app.service.riot.riot_get_service import RiotGetService
 
 load_dotenv()
 
@@ -102,7 +102,7 @@ class RiotService:
                         sub_perk_part2=next((perk for perk in PERKS if perk["id"] == sub_perks[1]["perk"]), False)["name"],
                         offense_perk=participant["perks"]["statPerks"]["offense"],
                         flex_perk=participant["perks"]["statPerks"]["flex"],
-                        defense_perk=participant["perks"]["statPerks"]["offense"],
+                        defense_perk=participant["perks"]["statPerks"]["defense"],
                     )
                     self.riot_repository.save_participant(db_participant)
 

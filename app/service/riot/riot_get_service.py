@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 
-from repository.riot.riot_repository import RiotRepository
+from app.repository.riot.riot_repository import RiotRepository
 
 load_dotenv()
 

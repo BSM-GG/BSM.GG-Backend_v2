@@ -1,12 +1,12 @@
 import os
 from dotenv import load_dotenv
 
-from controller.user.model.user_model import UserModel
-from repository.user.user_repository import UserRepository
-from service.riot.riot_service import RiotService
-from service.riot.riot_api_service import RiotAPIService
-from service.user.auth_service import AuthService
-from service.user.user_get_service import UserGetService
+from app.controller.user.model.user_model import UserModel
+from app.repository.user.user_repository import UserRepository
+from app.service.riot.riot_service import RiotService
+from app.service.riot.riot_api_service import RiotAPIService
+from app.service.user.auth_service import AuthService
+from app.service.user.user_get_service import UserGetService
 
 load_dotenv()
 

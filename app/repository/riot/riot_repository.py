@@ -1,5 +1,5 @@
-from database import get_db
-from domain.tables import Summoner, Match, Participant
+from app.database import get_db
+from app.domain.tables import Summoner, Match, Participant
 
 
 class RiotRepository:

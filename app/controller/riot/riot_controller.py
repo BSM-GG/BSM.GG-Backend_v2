@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
-from controller.riot.model.riot_model import MatchesCreate
-from service.riot.riot_service import RiotService
+from app.controller.riot.model.riot_model import MatchesCreate
+from app.service.riot.riot_service import RiotService
 
 riot_controller = APIRouter(prefix="/api/riot", tags=["riot"])
 riot_service = RiotService()
