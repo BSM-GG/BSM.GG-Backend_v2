@@ -1,8 +1,12 @@
+import os
+
+from dotenv import load_dotenv
 from sqlalchemy import Boolean, Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 
 from app.database import Base
 
+load_dotenv()
 
 class User(Base):
     __tablename__ = 'user'
@@ -35,14 +39,20 @@ class Summoner(Base):
     tag_line = Column(String(20))
     profile_icon = Column(Integer)
     level = Column(Integer)
-    tier = Column(String(50))
-    lp = Column(Integer)
+    solo_tier = Column(String(50))
+    solo_lp = Column(Integer)
+    solo_wins = Column(Integer)
+    solo_loses = Column(Integer)
+    flex_tier = Column(String(50))
+    flex_lp = Column(Integer)
+    flex_wins = Column(Integer)
+    flex_loses = Column(Integer)
     most1 = Column(String(50))
     most2 = Column(String(50))
     most3 = Column(String(50))
 
     # util
-    last_updated = Column(String(30), default=1713582000)
+    last_updated = Column(String(30), default=os.getenv("SEASON_STARTED_TIME"))
 
 
 class Match(Base):

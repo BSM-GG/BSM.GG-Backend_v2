@@ -1,5 +1,5 @@
 from app.database import get_db
-from app.domain.tables import User
+from app.domain.restapi.tables import User
 
 
 class UserRepository:
