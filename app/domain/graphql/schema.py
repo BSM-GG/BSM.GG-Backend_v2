@@ -5,15 +5,15 @@ import strawberry
 from sqlalchemy import func
 from strawberry.fastapi import GraphQLRouter
 
+from app.domain.graphql.types import SummonerType, MatchType, ParticipantType
 from app.domain.restapi.tables import Summoner, Participant, Match, User
 from app.database import get_db
 from app.repository.riot.riot_repository import RiotRepository
 
-from types import SummonerType, ThisWeekType
+from app.domain.graphql.types import SummonerType, ThisWeekType
 
 riot_repository = RiotRepository()
 season_started = os.getenv('SEASON_STARTED_TIME')
-
 
 
 @strawberry.type
@@ -39,6 +39,31 @@ class Query:
             flex_loses=summoner.flex_loses,
             most_champions=[summoner.most1, summoner.most2, summoner.most3],
         ) for summoner in summoners]
+
+    @strawberry.field(description="이름, 태그로 소환사 조회")
+    async def summoner(self, game_name: str, tag_line: str) -> SummonerType:
+        db = next(get_db())
+        summoner = (db.query(Summoner)
+                    .filter(Summoner.game_name == game_name)
+                    .filter(Summoner.tag_line == tag_line)
+                    .first())
+        return SummonerType(
+            puuid=summoner.puuid,
+            id=summoner.id,
+            game_name=summoner.game_name,
+            tag_line=summoner.tag_line,
+            profile_icon=summoner.profile_icon,
+            level=summoner.level,
+            solo_tier=summoner.solo_tier,
+            solo_lp=summoner.solo_lp,
+            solo_wins=summoner.solo_wins,
+            solo_loses=summoner.solo_loses,
+            flex_tier=summoner.flex_tier,
+            flex_lp=summoner.flex_lp,
+            flex_wins=summoner.flex_wins,
+            flex_loses=summoner.flex_loses,
+            most_champions=[summoner.most1, summoner.most2, summoner.most3],
+        )
 
     @strawberry.field(description="이주의 롤창")
     async def this_week(self) -> ThisWeekType:
@@ -96,6 +121,43 @@ class Query:
             vision_score=summoner.vision_score,
             cs=summoner.cs,
         )
+
+    # @strawberry.filed(description="소환사 전적 검색")
+    # async def summoner_analyze(self, game_name: str, tag_line: str, page: int = 0) -> MatchType:
+    #     db = next(get_db())
+    #     offset = (page-1) * 10
+    #     limit = 10
+    #
+    #     match_ids = db.query(Match.match_id).offset(offset).limit(limit).all()
+        # for match_id in match_ids:
+        #     participants = (db.query(Participant.puuid)
+        #                     .select_from(Participant)
+        #                     .join(Match)
+        #                     .filter(Match.match_id == match_id)
+        #                     .all())
+        #     part_list = [ParticipantType(
+        #         game_name=participant.game_name
+        #         tag_line=participant.
+        #         solo_tier=participant.
+        #         level=participant.
+        #         champion=participant.
+        #         spell1=participant.
+        #         spell2=participant.
+        #         main_perk=participant.
+        #         sub_perk=participant.
+        #         kill=participant.
+        #         death=participant.
+        #         assist=participant.
+        #         damage=participant.
+        #         gain_damage=participant.
+        #         sight_ward=participant.
+        #         vision_ward=participant.
+        #         vision_score=participant.
+        #         items: List[int]
+        #         ward
+        #     ) for participant in participants]
+
+
 
 
 schema = strawberry.Schema(query=Query)

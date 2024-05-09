@@ -74,3 +74,4 @@ class MatchType:
     game_start_at: int
     game_duration: int
     participants: List[ParticipantType]
+    page: int

@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from concurrent.futures import ThreadPoolExecutor
 
 from app.domain.restapi.tables import Participant
 from app.repository.riot.riot_repository import RiotRepository
@@ -34,6 +35,75 @@ class RiotService:
 
         self.riot_repository.save(summoner_info, solo_info, flex_info, game_name, tag_line)
 
+    async def send_match_query(self, match_id: str) -> int:
+        if await self.riot_get_service.find_match(match_id):
+            return 0
+        match = await self.riot_api_service.get_match_data_by_riotAPI(match_id)
+
+        # match info
+        game_start_at = int(str(match["info"]["gameCreation"])[:-3])
+        game_end_at = int(str(match["info"]["gameEndTimestamp"])[:-3])
+        game_duration = match["info"]["gameDuration"]
+        game_type = QUEUE_TYPE[match["info"]["queueId"]]
+        self.riot_repository.save_match(match_id, game_start_at, game_end_at, game_duration, game_type)
+
+        participants = match["info"]["participants"]
+        for participant in participants:
+            puuid = participant["puuid"]
+            if await self.riot_get_service.find_participant(puuid, match_id):
+                continue
+
+            main_perks = participant["perks"]["styles"][0]["selections"]
+            sub_perks = participant["perks"]["styles"][1]["selections"]
+            db_participant = Participant(
+                puuid=puuid,
+                match_id=match_id,
+                game_name=participant["riotIdGameName"],
+                tag_line=participant["riotIdTagline"],
+                win=participant["win"],
+                champion=participant["championName"],
+                champion_level=participant["champLevel"],
+                lane=participant["lane"],
+                kill=participant["kills"],
+                assist=participant["assists"],
+                death=participant["deaths"],
+                cs=participant["totalMinionsKilled"],
+                damage=participant["totalDamageDealt"],
+                damage_rate=round(participant["challenges"]["teamDamagePercentage"] * 100),
+                gain_damage=participant["totalDamageTaken"],
+                heal=participant["totalHeal"],
+                earned_gold=participant["goldEarned"],
+                spent_gold=participant["goldSpent"],
+                vision_ward=participant["visionWardsBoughtInGame"],
+                sight_ward=participant["sightWardsBoughtInGame"],
+                vision_score=participant["visionScore"],
+                skill_used=participant["challenges"]["abilityUses"],
+                spell1=SPELL_NAME[participant["summoner1Id"]],
+                spell2=SPELL_NAME[participant["summoner2Id"]],
+                spell1_used=participant["summoner1Casts"],
+                spell2_used=participant["summoner2Casts"],
+                item1=participant["item0"],
+                item2=participant["item1"],
+                item3=participant["item2"],
+                item4=participant["item3"],
+                item5=participant["item4"],
+                item6=participant["item5"],
+                ward=participant["item6"],
+                main_perk=next((perk for perk in PERKS if perk["id"] == main_perks[0]["perk"]), {"name": ""})["name"],
+                main_perk_part1=next((perk for perk in PERKS if perk["id"] == main_perks[1]["perk"]), {"name": ""})["name"],
+                main_perk_part2=next((perk for perk in PERKS if perk["id"] == main_perks[2]["perk"]), {"name": ""})["name"],
+                main_perk_part3=next((perk for perk in PERKS if perk["id"] == main_perks[3]["perk"]), {"name": ""})["name"],
+                sub_style=participant["perks"]["styles"][1]["style"],
+                sub_perk_part1=next((perk for perk in PERKS if perk["id"] == sub_perks[0]["perk"]), {"name": ""})["name"],
+                sub_perk_part2=next((perk for perk in PERKS if perk["id"] == sub_perks[1]["perk"]), {"name": ""})["name"],
+                offense_perk=participant["perks"]["statPerks"]["offense"],
+                flex_perk=participant["perks"]["statPerks"]["flex"],
+                defense_perk=participant["perks"]["statPerks"]["defense"],
+            )
+            self.riot_repository.save_participant(db_participant)
+
+        return match.game_end_at
+
     async def update_record(self, game_name: str, tag_line: str):
 
         summoner = await self.riot_get_service.find_summoner(game_name, tag_line)
@@ -43,82 +113,19 @@ class RiotService:
                 "message": "Cannot Find Summoner"
             }
 
-        matches = await self.riot_api_service.get_matches_by_riotAPI(summoner.puuid, summoner.last_updated)
+        match_ids = await self.riot_api_service.get_matches_by_riotAPI(summoner.puuid, summoner.last_updated)
         while True:
-            if len(matches) == 0:
+            if len(match_ids) == 0:
                 break
 
-            last_match_time = ""
-            for match_id in matches:# KR_7055920412
-                if await self.riot_get_service.find_match(match_id):
-                    continue
-                match = await self.riot_api_service.get_match_data_by_riotAPI(match_id)
+            last_match_time = 0
+            with ThreadPoolExecutor(max_workers=16) as executor:
+                list(executor.map(self.send_match_query, match_ids))
 
-                # match info
-                game_start_at = int(str(match["info"]["gameCreation"])[:-3])
-                game_end_at = int(str(match["info"]["gameEndTimestamp"])[:-3])
-                game_duration = match["info"]["gameDuration"]
-                game_type = QUEUE_TYPE[match["info"]["queueId"]]
-                self.riot_repository.save_match(match_id, game_start_at, game_end_at, game_duration, game_type)
+            if last_match_time != 0:
+                self.riot_repository.update_summoner(summoner.puuid, last_match_time)
 
-                participants = match["info"]["participants"]
-                for participant in participants:
-                    puuid = participant["puuid"]
-                    if await self.riot_get_service.find_participant(puuid, match_id):
-                        continue
-
-                    main_perks = participant["perks"]["styles"][0]["selections"]
-                    sub_perks = participant["perks"]["styles"][1]["selections"]
-                    db_participant = Participant(
-                        puuid=puuid,
-                        match_id=match_id,
-                        win=participant["win"],
-                        champion=participant["championName"],
-                        champion_level=participant["champLevel"],
-                        lane=participant["lane"],
-                        kill=participant["kills"],
-                        assist=participant["assists"],
-                        death=participant["deaths"],
-                        cs=participant["totalMinionsKilled"],
-                        damage=participant["totalDamageDealt"],
-                        damage_rate=round(participant["challenges"]["teamDamagePercentage"]*100),
-                        gain_damage=participant["totalDamageTaken"],
-                        heal=participant["totalHeal"],
-                        earned_gold=participant["goldEarned"],
-                        spent_gold=participant["goldSpent"],
-                        vision_ward=participant["visionWardsBoughtInGame"],
-                        sight_ward=participant["sightWardsBoughtInGame"],
-                        vision_score=participant["visionScore"],
-                        skill_used=participant["challenges"]["abilityUses"],
-                        spell1=SPELL_NAME[participant["summoner1Id"]],
-                        spell2=SPELL_NAME[participant["summoner2Id"]],
-                        spell1_used=participant["summoner1Casts"],
-                        spell2_used=participant["summoner2Casts"],
-                        item1=participant["item0"],
-                        item2=participant["item1"],
-                        item3=participant["item2"],
-                        item4=participant["item3"],
-                        item5=participant["item4"],
-                        item6=participant["item5"],
-                        ward=participant["item6"],
-                        main_perk=next((perk for perk in PERKS if perk["id"] == main_perks[0]["perk"]), {"name": ""})["name"],
-                        main_perk_part1=next((perk for perk in PERKS if perk["id"] == main_perks[1]["perk"]), {"name": ""})["name"],
-                        main_perk_part2=next((perk for perk in PERKS if perk["id"] == main_perks[2]["perk"]), {"name": ""})["name"],
-                        main_perk_part3=next((perk for perk in PERKS if perk["id"] == main_perks[3]["perk"]), {"name": ""})["name"],
-                        sub_style=participant["perks"]["styles"][1]["style"],
-                        sub_perk_part1=next((perk for perk in PERKS if perk["id"] == sub_perks[0]["perk"]), {"name": ""})["name"],
-                        sub_perk_part2=next((perk for perk in PERKS if perk["id"] == sub_perks[1]["perk"]), {"name": ""})["name"],
-                        offense_perk=participant["perks"]["statPerks"]["offense"],
-                        flex_perk=participant["perks"]["statPerks"]["flex"],
-                        defense_perk=participant["perks"]["statPerks"]["defense"],
-                    )
-                    self.riot_repository.save_participant(db_participant)
-
-                last_match_time = game_end_at
-
-            self.riot_repository.update_summoner(summoner.puuid, last_match_time)
-
-            if len(matches) < 100:
+            if len(match_ids) < 100:
                 break
 
         mosts = self.riot_repository.find_summoner_most(summoner.puuid)
