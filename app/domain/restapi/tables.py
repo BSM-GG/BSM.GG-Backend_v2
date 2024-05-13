@@ -1,4 +1,5 @@
 import os
+from uuid import UUID
 
 from dotenv import load_dotenv
 from sqlalchemy import Boolean, Column, Integer, String, ForeignKey
@@ -8,20 +9,22 @@ from app.database import Base
 
 load_dotenv()
 
+
 class User(Base):
     __tablename__ = 'user'
 
-    # riot puuid
-    puuid = Column(String(100), primary_key=True)
+    # UUID
+    uuid = Column(String(32), primary_key=True)
 
     # common info
+    email = Column(String(50), nullable=False, unique=True)
     code = Column(Integer, nullable=False)
-    email = Column(String(32), nullable=False, unique=True)
     nickname = Column(String(32), nullable=False)
     name = Column(String(32), nullable=False)
     role = Column(String(20), nullable=False)
 
     # student info
+    is_graduate = Column(Boolean)
     enrolled_at = Column(Integer)
     grade = Column(Integer)
     class_no = Column(Integer)

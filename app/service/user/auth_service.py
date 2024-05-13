@@ -1,4 +1,6 @@
+import json
 import os
+
 import requests
 from dotenv import load_dotenv
 
@@ -31,4 +33,12 @@ class AuthService:
                 "token": token
             }
         )
-        return response.json().get('user')
+        user = json.loads(response.text)["user"]
+        if user["role"] == "TEACHER":
+            user["isGraduate"] = False
+            user["enrolledAt"] = 0
+            user["grade"] = 0
+            user["classNo"] = 0
+            user["studentNo"] = 0
+        return user
+

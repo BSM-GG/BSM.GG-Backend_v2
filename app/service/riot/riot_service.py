@@ -120,7 +120,7 @@ class RiotService:
 
             last_match_time = 0
             with ThreadPoolExecutor(max_workers=16) as executor:
-                list(executor.map(self.send_match_query, match_ids))
+                last_match_times = list(executor.map(self.send_match_query, match_ids))
 
             if last_match_time != 0:
                 self.riot_repository.update_summoner(summoner.puuid, last_match_time)

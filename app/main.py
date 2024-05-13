@@ -6,7 +6,7 @@ from app.controller.summoner.summoner_controller import summoner_controller
 from app.controller.user.user_controller import user_controller
 from app.domain.restapi.tables import Base
 from app.database import engine
-
+from app.utility.error.exception import add_exception_handler
 
 app = FastAPI()
 app.add_middleware(
@@ -27,3 +27,5 @@ async def say_hello(name: str):
 app.include_router(user_controller)
 app.include_router(riot_controller)
 app.include_router(summoner_controller, prefix="/graphql", tags=["graphql"])
+
+add_exception_handler(app)

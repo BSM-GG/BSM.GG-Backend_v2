@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.controller.user.model.user_model import UserCreate
+from app.controller.user.models.user_model import UserRequestModel, JwtModel
 from app.service.user.user_service import UserService
 
 user_controller = APIRouter(prefix="/api/user", tags=["user"])
@@ -8,9 +8,9 @@ user_service = UserService()
 
 
 @user_controller.post('', description="대충 유저 등록")
-async def assign_user(user: UserCreate):
-    response = await user_service.assign_user(user.auth_code, user.game_name, user.tag_line)
-    return response
+async def assign_user(user_model: UserRequestModel) -> JwtModel:
+    token = await user_service.assign_user(user_model.auth_code)
+    return JwtModel(token=token)
 
 
 # @user_controller.post("", responses=None)

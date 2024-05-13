@@ -1,16 +1,16 @@
 import os
 import time
-from typing import List, Optional
+from typing import List
 import strawberry
-from sqlalchemy import func
 from strawberry.fastapi import GraphQLRouter
+from sqlalchemy import func
 
-from app.domain.graphql.types import SummonerType, MatchType, ParticipantType
+from app.controller.summoner.types.summoner_type import SummonerType
+from app.controller.summoner.types.this_week_type import ThisWeekType
+from app.controller.summoner.types.match_type import ParticipantType, MatchType
 from app.domain.restapi.tables import Summoner, Participant, Match, User
 from app.database import get_db
 from app.repository.riot.riot_repository import RiotRepository
-
-from app.domain.graphql.types import SummonerType, ThisWeekType
 
 riot_repository = RiotRepository()
 season_started = os.getenv('SEASON_STARTED_TIME')
@@ -158,7 +158,5 @@ class Query:
         #     ) for participant in participants]
 
 
-
-
 schema = strawberry.Schema(query=Query)
-graphql_app = GraphQLRouter(schema)
+summoner_controller = GraphQLRouter(schema)
