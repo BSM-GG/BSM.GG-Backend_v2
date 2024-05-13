@@ -13,7 +13,12 @@ class InvalidToken(Exception):
         self.token: str = token
 
 
-class UserNotFoundByRiotAPI(Exception):
+class SummonerNotFoundByRiotAPI(Exception):
     def __init__(self, game_name: str, tag_line: str):
         self.game_name: str = game_name
         self.tag_line: str = tag_line
+
+
+class RiotAPIForbidden(Exception):
+    def __init__(self):
+        pass

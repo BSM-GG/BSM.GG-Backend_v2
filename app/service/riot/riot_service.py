@@ -9,7 +9,8 @@ from app.repository.user.user_repository import UserRepository
 from app.service.riot.mapping.name_mapping import QUEUE_TYPE, PERKS, SPELL_NAME
 from app.service.riot.riot_api_service import RiotAPIService
 from app.service.riot.riot_get_service import RiotGetService
-from app.utility.error.errors import InvalidToken, UserNotFoundByRiotAPI
+from app.service.user.user_update_service import UserUpdateService
+from app.utility.error.errors import InvalidToken, SummonerNotFoundByRiotAPI, RiotAPIForbidden
 from app.utility.jwt.jwt_util import JwtUtil
 
 load_dotenv()
@@ -27,18 +28,26 @@ class RiotService:
         self.riot_api_service = RiotAPIService()
         self.riot_get_service = RiotGetService()
         self.user_get_service = UserRepository()
+        self.user_update_service = UserUpdateService()
         self.riot_repository = RiotRepository()
         self.user_repository = UserRepository()
 
     async def assign_summoner(self, token: str, game_name: str, tag_line: str):
-        user = self.jwt_util.decode_token(token)
-        if user in None:
-            raise InvalidToken(token=token)
 
         response = await self.riot_api_service.get_riot_account_by_riotAPI(game_name, tag_line)
+        if response.json().get("status_code") == 403:
+            raise RiotAPIForbidden()
         if response.json().get("status_code") == 404:
-            raise UserNotFoundByRiotAPI(game_name=game_name, tag_line=tag_line)
+            raise SummonerNotFoundByRiotAPI(game_name=game_name, tag_line=tag_line)
         summoner = json.loads(response.text)
+
+        if token != "":
+            user = self.jwt_util.decode_token(token)
+            if user is None:
+                raise InvalidToken(token=token)
+            self.user_update_service.update_puuid(user.uuid, summoner["puuid"])
+
+        summoner = await self.riot_api_service.get_summoner_info_by_riotAPI(summoner["puuid"])
 
         rank = await self.riot_api_service.get_rank_info_by_riotAPI(summoner["id"])
 

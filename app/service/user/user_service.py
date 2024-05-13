@@ -4,11 +4,11 @@ import uuid
 from dotenv import load_dotenv
 
 from app.repository.user.user_repository import UserRepository
+from app.service.oauth.auth_service import AuthService
 from app.service.riot.riot_service import RiotService
 from app.service.riot.riot_api_service import RiotAPIService
-from app.service.user.auth_service import AuthService
 from app.service.user.user_get_service import UserGetService
-from app.utility.error.errors import InvalidAuthorizationCode, AlreadyExistUser
+from app.utility.error.errors import InvalidAuthorizationCode
 from app.utility.jwt.jwt_util import JwtUtil
 
 load_dotenv()
@@ -22,7 +22,6 @@ class UserService:
         self.asia_url = os.getenv("ASIA_URL")
 
         self.jwt_util = JwtUtil()
-
         self.user_get_service = UserGetService()
         self.auth_service = AuthService()
         self.riot_service = RiotService()

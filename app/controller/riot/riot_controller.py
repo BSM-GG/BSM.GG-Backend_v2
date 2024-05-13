@@ -12,6 +12,7 @@ async def assign_summoner(
         summoner: SummonerModel,
         token: str = Header(default=None),
 ) -> None:
+    if token == "": return
     await riot_service.assign_summoner(token, summoner.game_name, summoner.tag_line)
 
 

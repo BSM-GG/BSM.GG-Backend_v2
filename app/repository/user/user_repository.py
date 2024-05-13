@@ -28,6 +28,12 @@ class UserRepository:
     def find_user_by_email(self, email: str):
         return self.db.query(User).filter(User.email == email).first()
 
-    def find_user_by_uuid(self, uuid):
+    def find_user_by_uuid(self, uuid: str):
         return self.db.query(User).filter(User.uuid == uuid).first()
+
+    def update_puuid_by_uuid(self, uuid: str, puuid: str):
+        user = self.find_user_by_uuid(uuid)
+        user.puuid = puuid
+        self.db.commit()
+
 
