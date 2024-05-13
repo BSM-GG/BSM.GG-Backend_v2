@@ -35,13 +35,14 @@ class UserService:
         auth_token = await self.auth_service.get_token(auth_code)
         if auth_token is None:
             raise InvalidAuthorizationCode(auth_code=auth_code)
-
         user = await self.auth_service.get_user(auth_token)
-        if await self.user_get_service.get_user_by_email(user["email"]):
-            raise AlreadyExistUser(username=user["nickname"])
 
-        user_uuid = str(uuid.uuid4()).replace("-", "")
-        self.user_repository.save(user_uuid, user)
-        return self.jwt_util.create_token(user_uuid)
+        db_user = self.user_get_service.get_user_by_email(user["email"])
+        if db_user is None:
+            user_uuid = str(uuid.uuid4()).replace("-", "")
+            self.user_repository.save(user_uuid, user)
+            return self.jwt_util.create_token(user_uuid)
+
+        return self.jwt_util.create_token(db_user.uuid)
 
         # await self.riot_service.update_record(game_name, tag_line)
