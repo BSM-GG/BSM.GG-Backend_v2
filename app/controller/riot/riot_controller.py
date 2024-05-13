@@ -1,16 +1,20 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Header
 
-from app.controller.riot.model.riot_model import MatchesCreate
+from app.controller.riot.model.riot_model import SummonerModel
 from app.service.riot.riot_service import RiotService
 
 riot_controller = APIRouter(prefix="/api/riot", tags=["riot"])
 riot_service = RiotService()
 
 
-# @riot_controller.post('', description="대충 유저 등록")
-# async def assign_riot(email: str, game_name, tag_line):
-#     return await riot_service.create_summoner(email, game_name, tag_line)
+@riot_controller.post("/summoner", description="소환사 등록")
+async def assign_summoner(
+        summoner: SummonerModel,
+        token: str = Header(default=None),
+) -> None:
+    await riot_service.assign_summoner(token, summoner.game_name, summoner.tag_line)
 
-@riot_controller.post("", description="유저 매치 정보 업데이트")
-async def reload_record(user: MatchesCreate):
-    return await riot_service.update_record(user.game_name, user.tag_line)
+
+@riot_controller.post("/match", description="전적 갱신")
+async def reload_record(summoner: SummonerModel):
+    return await riot_service.update_record(summoner.game_name, summoner.tag_line)

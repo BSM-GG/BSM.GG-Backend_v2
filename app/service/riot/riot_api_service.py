@@ -19,7 +19,7 @@ class RiotAPIService:
         response = requests.get(
             f"{self.asia_riot_url}/account/v1/accounts/by-riot-id/{game_name}/{tag_line}?api_key={self.api_key}"
         )
-        return response.json()
+        return response
 
     async def get_summoner_info_by_riotAPI(self, puuid: str):
         response = requests.get(

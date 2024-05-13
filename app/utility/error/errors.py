@@ -6,3 +6,14 @@ class InvalidAuthorizationCode(Exception):
 class AlreadyExistUser(Exception):
     def __init__(self, username: str):
         self.username: str = username
+
+
+class InvalidToken(Exception):
+    def __init__(self, token: str):
+        self.token: str = token
+
+
+class UserNotFoundByRiotAPI(Exception):
+    def __init__(self, game_name: str, tag_line: str):
+        self.game_name: str = game_name
+        self.tag_line: str = tag_line

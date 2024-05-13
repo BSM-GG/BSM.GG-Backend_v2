@@ -3,7 +3,7 @@ from fastapi.exceptions import RequestValidationError
 from starlette import status
 from starlette.responses import JSONResponse
 
-from app.utility.error.errors import InvalidAuthorizationCode, AlreadyExistUser
+from app.utility.error.errors import InvalidAuthorizationCode, AlreadyExistUser, InvalidToken, UserNotFoundByRiotAPI
 
 
 def add_exception_handler(app: FastAPI):
@@ -46,5 +46,28 @@ def add_exception_handler(app: FastAPI):
                 "status_code": 409,
                 "message": "Already Exist User",
                 "username": exc.username
+            }
+        )
+
+    @app.exception_handler(InvalidToken)
+    async def already_exist_exception_handler(request: Request, exc: InvalidToken):
+        return JSONResponse(
+            status_code=status.HTTP_403_FORBIDDEN,
+            content={
+                "status_code": 403,
+                "message": "Invalid Token",
+                "token": exc.token
+            }
+        )
+
+    @app.exception_handler(UserNotFoundByRiotAPI)
+    async def already_exist_exception_handler(request: Request, exc: UserNotFoundByRiotAPI):
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={
+                "status_code": 404,
+                "message": "User Not Found By Riot API",
+                "game_name": exc.game_name,
+                "tag_line": exc.tag_line,
             }
         )

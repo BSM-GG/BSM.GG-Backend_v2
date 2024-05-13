@@ -11,55 +11,40 @@ class RiotRepository:
 
     # region Summoner
 
-    def save(self, summoner_info, solo_info, flex_info, game_name: str, tag_line: str):
-        solo_tier = ""
-        solo_lp = 0
-        solo_wins = 0
-        solo_loses = 0
+    def save(self, summoner, solo, flex, game_name: str, tag_line: str):
+        db_summoner = self.find_summoner_by_puuid(summoner["puuid"])
+        if db_summoner is None:
+            db_summoner = Summoner()
+        db_summoner.puuid = summoner["puuid"],
+        db_summoner.id = summoner["id"],
+        db_summoner.game_name = game_name,
+        db_summoner.tag_line = tag_line,
+        db_summoner.profile_icon = summoner["profileIconId"],
+        db_summoner.level = summoner["summonerLevel"],
 
-        flex_tier = ""
-        flex_lp = 0
-        flex_wins = 0
-        flex_loses = 0
+        if len(solo) != 0:
+            db_summoner.solo_tier = f"{solo[0]['tier']} {solo[0]['rank']}"
+            db_summoner.solo_lp = solo[0]["leaguePoints"]
+            db_summoner.solo_wins = solo[0]["wins"]
+            db_summoner.solo_loses = solo[0]["losses"]
+        if len(flex) != 0:
+            db_summoner.flex_tier = f"{flex[0]['tier']} {flex[0]['rank']}"
+            db_summoner.flex_lp = flex[0]["leaguePoints"]
+            db_summoner.flex_wins = flex[0]["wins"]
+            db_summoner.flex_loses = flex[0]["losses"]
 
-        if len(solo_info) != 0:
-            solo_tier = f"{solo_info[0]['tier']} {solo_info[0]['rank']}"
-            solo_lp = solo_info[0]["leaguePoints"]
-            solo_wins = solo_info[0]["wins"]
-            solo_loses = solo_info[0]["losses"]
-        if len(flex_info) != 0:
-            flex_tier = f"{flex_info[0]['tier']} {flex_info[0]['rank']}"
-            flex_lp = flex_info[0]["leaguePoints"]
-            flex_wins = flex_info[0]["wins"]
-            flex_loses = flex_info[0]["losses"]
-        db_summoner = Summoner(
-            puuid=summoner_info["puuid"],
-            id=summoner_info["id"],
-            game_name=game_name,
-            tag_line=tag_line,
-            profile_icon=summoner_info["profileIconId"],
-            level=summoner_info["summonerLevel"],
-            solo_tier=solo_tier,
-            solo_lp=solo_lp,
-            solo_wins=solo_wins,
-            solo_loses=solo_loses,
-            flex_tier=flex_tier,
-            flex_lp=flex_lp,
-            flex_wins=flex_wins,
-            flex_loses=flex_loses,
-        )
         self.db.add(db_summoner)
         self.db.commit()
         self.db.refresh(db_summoner)
 
-    async def find_summoner_by_name_and_tag(self, game_name, tag_line):
+    def find_summoner_by_name_and_tag(self, game_name, tag_line):
         return self.db.query(Summoner).filter(Summoner.game_name == game_name).filter(
             Summoner.tag_line == tag_line).first()
 
-    async def find_summoner_by_puuid(self, puuid: str):
+    def find_summoner_by_puuid(self, puuid: str):
         return self.db.query(Summoner).filter(Summoner.puuid == puuid).first()
 
-    def update_summoner(self, puuid: str, last_match_time: int):
+    def update_summoner_last_updated(self, puuid: str, last_match_time: int):
         if last_match_time == "":
             return
         summoner = self.db.query(Summoner).filter(Summoner.puuid == puuid).first()
@@ -123,3 +108,4 @@ class RiotRepository:
             Participant.match_id == match_id).first()
 
     # endregion
+

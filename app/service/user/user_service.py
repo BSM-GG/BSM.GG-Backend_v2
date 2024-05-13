@@ -43,15 +43,5 @@ class UserService:
         user_uuid = str(uuid.uuid4()).replace("-", "")
         self.user_repository.save(user_uuid, user)
         return self.jwt_util.create_token(user_uuid)
-        #
-        # response = await self.riot_get_service.get_riot_account_by_riotAPI(game_name, tag_line)
-        # if response.get("status_code") == 404:
-        #     return {
-        #         "status_code": "404",
-        #         "detail": "User Not Found By Riot API"
-        #     }
-        # puuid = response.get("puuid")
-        #
-        #
-        # await self.riot_service.create_summoner(puuid, game_name, tag_line)
+
         # await self.riot_service.update_record(game_name, tag_line)

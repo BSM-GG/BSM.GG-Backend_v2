@@ -25,9 +25,9 @@ class UserRepository:
         self.db.commit()
         self.db.refresh(db_user)
 
-    async def get_user_by_email(self, email: str):
-        return self.db.query(User).filter(User.email == email).first()
-
     async def find_user_by_email(self, email: str):
         return self.db.query(User).filter(User.email == email).first()
+
+    async def find_user_by_uuid(self, uuid):
+        return self.db.query(User).filter(User.uuid == uuid).first()
 

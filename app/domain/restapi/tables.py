@@ -55,6 +55,7 @@ class Summoner(Base):
     most3 = Column(String(50))
 
     # util
+    uuid = Column(String(32))
     last_updated = Column(String(30), default=os.getenv("SEASON_STARTED_TIME"))
 
 
