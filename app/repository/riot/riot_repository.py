@@ -11,8 +11,8 @@ class RiotRepository:
 
     # region Summoner
 
-    def save(self, summoner, solo, flex, game_name: str, tag_line: str):
-        db_summoner = self.find_summoner_by_puuid(summoner["puuid"])
+    async def save(self, summoner, solo, flex, game_name: str, tag_line: str):
+        db_summoner = await self.find_summoner_by_puuid(summoner["puuid"])
         if db_summoner is None:
             db_summoner = Summoner()
         db_summoner.puuid = summoner["puuid"],
@@ -37,11 +37,11 @@ class RiotRepository:
         self.db.commit()
         self.db.refresh(db_summoner)
 
-    def find_summoner_by_name_and_tag(self, game_name, tag_line):
+    async def find_summoner_by_name_and_tag(self, game_name, tag_line):
         return self.db.query(Summoner).filter(Summoner.game_name == game_name).filter(
             Summoner.tag_line == tag_line).first()
 
-    def find_summoner_by_puuid(self, puuid: str):
+    async def find_summoner_by_puuid(self, puuid: str):
         return self.db.query(Summoner).filter(Summoner.puuid == puuid).first()
 
     def update_summoner_last_updated(self, puuid: str, last_match_time: int):
@@ -51,7 +51,7 @@ class RiotRepository:
         summoner.last_updated = last_match_time
         self.db.commit()
 
-    def find_summoner_most(self, puuid):
+    async def find_summoner_most(self, puuid):
         return (self.db.query(Participant.champion, func.count(Participant.champion))
                 .join(Match)
                 .filter(Participant.puuid == puuid)
@@ -91,7 +91,7 @@ class RiotRepository:
         self.db.commit()
         self.db.refresh(db_match)
 
-    def find_match_by_id(self, match_id):
+    async def find_match_by_id(self, match_id):
         return self.db.query(Match).filter(Match.match_id == match_id).first()
 
     # endregion
@@ -103,9 +103,8 @@ class RiotRepository:
         self.db.commit()
         self.db.refresh(db_participant)
 
-    def find_participant_by_ids(self, puuid, match_id):
+    async def find_participant_by_ids(self, puuid, match_id):
         return self.db.query(Participant).filter(Participant.puuid == puuid).filter(
             Participant.match_id == match_id).first()
 
     # endregion
-

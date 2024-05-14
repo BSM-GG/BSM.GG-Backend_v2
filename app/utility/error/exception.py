@@ -3,8 +3,9 @@ from fastapi.exceptions import RequestValidationError
 from starlette import status
 from starlette.responses import JSONResponse
 
-from app.utility.error.errors import InvalidAuthorizationCode, AlreadyExistUser, InvalidToken, SummonerNotFoundByRiotAPI, \
-    RiotAPIForbidden
+from app.utility.error.errors import InvalidAuthorizationCode, AlreadyExistUser, InvalidToken, \
+    SummonerNotFoundByRiotAPI, \
+    RiotAPIForbidden, SummonerNotFound
 
 
 def add_exception_handler(app: FastAPI):
@@ -61,18 +62,6 @@ def add_exception_handler(app: FastAPI):
             }
         )
 
-    @app.exception_handler(SummonerNotFoundByRiotAPI)
-    async def already_exist_exception_handler(request: Request, exc: SummonerNotFoundByRiotAPI):
-        return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND,
-            content={
-                "status_code": 404,
-                "message": "User Not Found By Riot API",
-                "game_name": exc.game_name,
-                "tag_line": exc.tag_line,
-            }
-        )
-
     @app.exception_handler(RiotAPIForbidden)
     async def already_exist_exception_handler(request: Request, exc: SummonerNotFoundByRiotAPI):
         return JSONResponse(
@@ -80,5 +69,29 @@ def add_exception_handler(app: FastAPI):
             content={
                 "status_code": 403,
                 "message": "Riot API Occur Forbidden",
+            }
+        )
+
+    @app.exception_handler(SummonerNotFoundByRiotAPI)
+    async def already_exist_exception_handler(request: Request, exc: SummonerNotFoundByRiotAPI):
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={
+                "status_code": 404,
+                "message": "Summoner Not Found By Riot API",
+                "game_name": exc.game_name,
+                "tag_line": exc.tag_line,
+            }
+        )
+
+    @app.exception_handler(SummonerNotFound)
+    async def already_exist_exception_handler(request: Request, exc: SummonerNotFound):
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={
+                "status_code": 404,
+                "message": "Summoner Not Found",
+                "game_name": exc.game_name,
+                "tag_line": exc.tag_line,
             }
         )

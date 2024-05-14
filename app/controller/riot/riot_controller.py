@@ -10,10 +10,10 @@ riot_service = RiotService()
 @riot_controller.post("/summoner", description="소환사 등록")
 async def assign_summoner(
         summoner: SummonerModel,
-        token: str = Header(default=None),
+        authorization: str = Header(default=None),
 ) -> None:
-    if token == "": return
-    await riot_service.assign_summoner(token, summoner.game_name, summoner.tag_line)
+    if authorization == "": return
+    await riot_service.assign_summoner(authorization, summoner.game_name, summoner.tag_line)
 
 
 @riot_controller.post("/match", description="전적 갱신")

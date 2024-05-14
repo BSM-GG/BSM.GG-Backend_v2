@@ -9,8 +9,8 @@ user_service = UserService()
 
 @user_controller.post('', description="대충 유저 등록")
 async def assign_user(user_model: UserRequestModel) -> JwtModel:
-    token = await user_service.assign_user(user_model.auth_code)
-    return JwtModel(token=token)
+    response = await user_service.assign_user(user_model.auth_code)
+    return JwtModel(token=response["token"], game_name=response["game_name"])
 
 
 # @user_controller.post("", responses=None)

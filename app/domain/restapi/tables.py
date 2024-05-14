@@ -83,8 +83,6 @@ class Participant(Base):
     match_id = Column(String(100), ForeignKey("match.match_id"), primary_key=True)
 
     # info
-    game_name = Column(String(50))
-    tag_line = Column(String(20))
     win = Column(Boolean)
     champion = Column(String(100))
     champion_level = Column(Integer)

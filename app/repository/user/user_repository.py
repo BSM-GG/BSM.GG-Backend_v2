@@ -25,14 +25,14 @@ class UserRepository:
         self.db.commit()
         self.db.refresh(db_user)
 
-    def find_user_by_email(self, email: str):
+    async def find_user_by_email(self, email: str):
         return self.db.query(User).filter(User.email == email).first()
 
-    def find_user_by_uuid(self, uuid: str):
+    async def find_user_by_uuid(self, uuid: str):
         return self.db.query(User).filter(User.uuid == uuid).first()
 
-    def update_puuid_by_uuid(self, uuid: str, puuid: str):
-        user = self.find_user_by_uuid(uuid)
+    async def update_puuid_by_uuid(self, uuid: str, puuid: str):
+        user = await self.find_user_by_uuid(uuid)
         user.puuid = puuid
         self.db.commit()
 

@@ -17,7 +17,7 @@ class RiotGetService:
         return await self.riot_repository.find_summoner_by_puuid(puuid)
 
     async def find_match(self, match_id: str):
-        return self.riot_repository.find_match_by_id(match_id)
+        return await self.riot_repository.find_match_by_id(match_id)
 
     async def find_participant(self, puuid: str, match_id: str):
-        return self.riot_repository.find_participant_by_ids(puuid, match_id)
+        return await self.riot_repository.find_participant_by_ids(puuid, match_id)
