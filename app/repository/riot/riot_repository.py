@@ -62,6 +62,10 @@ class RiotRepository:
                 .limit(3)
                 .all())
 
+    async def find_summoner_puuids(self, puuids: list[str]):
+        return self.db.query(Participant.puuid).filter(Participant.puuid in puuids).all()
+
+
     def update_summoner_mosts(self, puuid, mosts):
         summoner = self.db.query(Summoner).filter(Summoner.puuid == puuid).first()
         length = len(mosts)

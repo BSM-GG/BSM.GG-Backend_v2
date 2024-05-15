@@ -5,7 +5,7 @@ from starlette.responses import JSONResponse
 
 from app.utility.error.errors import InvalidAuthorizationCode, AlreadyExistUser, InvalidToken, \
     SummonerNotFoundByRiotAPI, \
-    RiotAPIForbidden, SummonerNotFound
+    RiotAPIForbidden, SummonerNotFound, NoVPN
 
 
 def add_exception_handler(app: FastAPI):
@@ -93,5 +93,15 @@ def add_exception_handler(app: FastAPI):
                 "message": "Summoner Not Found",
                 "game_name": exc.game_name,
                 "tag_line": exc.tag_line,
+            }
+        )
+
+    @app.exception_handler(NoVPN)
+    async def already_exist_exception_handler(request: Request, exc: NoVPN):
+        return JSONResponse(
+            status_code=status.HTTP_418_IM_A_TEAPOT,
+            content={
+                "status_code": 418,
+                "message": "Something Goes Wrong...",
             }
         )

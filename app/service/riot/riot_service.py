@@ -1,9 +1,6 @@
-import json
 import os
-import threading
 
 from dotenv import load_dotenv
-from concurrent.futures import ThreadPoolExecutor
 
 from app.domain.restapi.tables import Participant
 from app.repository.riot.riot_repository import RiotRepository
@@ -12,7 +9,7 @@ from app.service.riot.mapping.name_mapping import QUEUE_TYPE, PERKS, SPELL_NAME
 from app.service.riot.riot_api_service import RiotAPIService
 from app.service.riot.riot_get_service import RiotGetService
 from app.service.user.user_update_service import UserUpdateService
-from app.utility.error.errors import InvalidToken, SummonerNotFoundByRiotAPI, RiotAPIForbidden, SummonerNotFound
+from app.utility.error.errors import InvalidToken, SummonerNotFoundByRiotAPI, RiotAPIForbidden, SummonerNotFound, NoVPN
 from app.utility.jwt.jwt_util import JwtUtil
 
 load_dotenv()
@@ -35,27 +32,27 @@ class RiotService:
         self.user_repository = UserRepository()
 
     async def assign_summoner(self, authorization: str, game_name: str, tag_line: str):
-
         response = await self.riot_api_service.get_riot_account_by_riotAPI(game_name, tag_line)
         if 'status' in response:
             if response['status']['status_code'] == 403:
                 raise RiotAPIForbidden()
             if response['status']['status_code'] == 404:
                 raise SummonerNotFoundByRiotAPI(game_name=game_name, tag_line=tag_line)
+        await self.save_summoner(response["puuid"], game_name, tag_line)
 
-        summoner = await self.riot_api_service.get_summoner_info_by_riotAPI(response["puuid"])
+        if authorization == "": return
+        user = await self.jwt_util.decode_token(authorization)
+        if user is None:
+            raise InvalidToken(token=authorization)
+        await self.user_update_service.update_puuid(user.uuid, response["puuid"])
+        return self.jwt_util.create_token(username=user.uuid)
+
+    async def save_summoner(self, puuid: str, game_name: str, tag_line: str):
+        summoner = await self.riot_api_service.get_summoner_info_by_riotAPI(puuid)
         rank = await self.riot_api_service.get_rank_info_by_riotAPI(summoner["id"])
         solo = list(filter(lambda item: item['queueType'] == 'RANKED_SOLO_5x5', rank))
         flex = list(filter(lambda item: item['queueType'] == 'RANKED_FLEX_SR', rank))
-
         await self.riot_repository.save(summoner, solo, flex, game_name, tag_line)
-
-        if authorization != "":
-            user = await self.jwt_util.decode_token(authorization)
-            if user is None:
-                raise InvalidToken(token=authorization)
-            await self.user_update_service.update_puuid(user.uuid, summoner["puuid"])
-            return self.jwt_util.create_token(username=user.uuid)
 
     async def update_record(self, game_name: str, tag_line: str):
 
@@ -73,71 +70,21 @@ class RiotService:
                 if await self.riot_get_service.find_match(match_id):
                     continue
                 match = await self.riot_api_service.get_match_data_by_riotAPI(match_id)
-
-                # match info
-                game_start_at = int(str(match["info"]["gameCreation"])[:-3])
-                game_end_at = int(str(match["info"]["gameEndTimestamp"])[:-3])
-                game_duration = match["info"]["gameDuration"]
-                game_type = QUEUE_TYPE[match["info"]["queueId"]]
-                self.riot_repository.save_match(match_id, game_start_at, game_end_at, game_duration, game_type)
+                await self.save_match(match)
 
                 participants = match["info"]["participants"]
-                for participant in participants:
-                    puuid = participant["puuid"]
-                    if await self.riot_get_service.find_participant(puuid, match_id):
-                        continue
+                summoners = await self.save_participants(match_id, participants)
+                last_match_time = int(str(match["info"]["gameEndTimestamp"])[:-3])
 
-                    main_perks = participant["perks"]["styles"][0]["selections"]
-                    sub_perks = participant["perks"]["styles"][1]["selections"]
-                    db_participant = Participant(
-                        puuid=puuid,
-                        match_id=match_id,
-                        win=participant["win"],
-                        champion=participant["championName"],
-                        champion_level=participant["champLevel"],
-                        lane=participant["lane"],
-                        kill=participant["kills"],
-                        assist=participant["assists"],
-                        death=participant["deaths"],
-                        cs=participant["totalMinionsKilled"],
-                        damage=participant["totalDamageDealt"],
-                        damage_rate=round(participant["challenges"]["teamDamagePercentage"] * 100),
-                        gain_damage=participant["totalDamageTaken"],
-                        heal=participant["totalHeal"],
-                        earned_gold=participant["goldEarned"],
-                        spent_gold=participant["goldSpent"],
-                        vision_ward=participant["visionWardsBoughtInGame"],
-                        sight_ward=participant["sightWardsBoughtInGame"],
-                        vision_score=participant["visionScore"],
-                        skill_used=participant["challenges"]["abilityUses"],
-                        spell1=SPELL_NAME[participant["summoner1Id"]],
-                        spell2=SPELL_NAME[participant["summoner2Id"]],
-                        spell1_used=participant["summoner1Casts"],
-                        spell2_used=participant["summoner2Casts"],
-                        item1=participant["item0"],
-                        item2=participant["item1"],
-                        item3=participant["item2"],
-                        item4=participant["item3"],
-                        item5=participant["item4"],
-                        item6=participant["item5"],
-                        ward=participant["item6"],
-                        main_perk=next((perk for perk in PERKS if perk["id"] == main_perks[0]["perk"]), {"name": ""})["name"],
-                        main_perk_part1=next((perk for perk in PERKS if perk["id"] == main_perks[1]["perk"]), {"name": ""})["name"],
-                        main_perk_part2=next((perk for perk in PERKS if perk["id"] == main_perks[2]["perk"]), {"name": ""})["name"],
-                        main_perk_part3=next((perk for perk in PERKS if perk["id"] == main_perks[3]["perk"]), {"name": ""})["name"],
-                        sub_style=participant["perks"]["styles"][1]["style"],
-                        sub_perk_part1=next((perk for perk in PERKS if perk["id"] == sub_perks[0]["perk"]), {"name": ""})["name"],
-                        sub_perk_part2=next((perk for perk in PERKS if perk["id"] == sub_perks[1]["perk"]), {"name": ""})["name"],
-                        offense_perk=participant["perks"]["statPerks"]["offense"],
-                        flex_perk=participant["perks"]["statPerks"]["flex"],
-                        defense_perk=participant["perks"]["statPerks"]["defense"],
+                exist_puuids = await self.riot_repository.find_summoner_puuids(summoners["puuid"])
+                filtered_summoners = list(filter(lambda item: item["puuid"] not in exist_puuids, summoners))
+                for f_summoner in filtered_summoners:
+                    await self.save_summoner(
+                        f_summoner["puuid"],
+                        f_summoner["game_name"],
+                        f_summoner["tag_line"],
                     )
-                    self.riot_repository.save_participant(db_participant)
 
-                    game_name = participant["riotIdGameName"]
-                    tag_line = participant["riotIdTagline"]
-                    await self.assign_summoner("", game_name, tag_line)
-                last_match_time = game_end_at
             if last_match_time != 0:
                 self.riot_repository.update_summoner_last_updated(summoner.puuid, last_match_time)
 
@@ -146,3 +93,79 @@ class RiotService:
 
         mosts = self.riot_repository.find_summoner_most(summoner.puuid)
         self.riot_repository.update_summoner_mosts(summoner.puuid, mosts)
+
+    async def save_participants(self, match_id, participants: list) -> dict:
+        summoners = {
+            "puuid": [],
+            "game_name": [],
+            "tag_line": [],
+        }
+        for participant in participants:
+            puuid = participant["puuid"]
+            if await self.riot_get_service.find_participant(puuid, match_id):
+                continue
+
+            main_perks = participant["perks"]["styles"][0]["selections"]
+            sub_perks = participant["perks"]["styles"][1]["selections"]
+            db_participant = Participant(
+                puuid=puuid,
+                match_id=match_id,
+                win=participant["win"],
+                champion=participant["championName"],
+                champion_level=participant["champLevel"],
+                lane=participant["lane"],
+                kill=participant["kills"],
+                assist=participant["assists"],
+                death=participant["deaths"],
+                cs=participant["totalMinionsKilled"],
+                damage=participant["totalDamageDealt"],
+                damage_rate=round(participant["challenges"]["teamDamagePercentage"] * 100),
+                gain_damage=participant["totalDamageTaken"],
+                heal=participant["totalHeal"],
+                earned_gold=participant["goldEarned"],
+                spent_gold=participant["goldSpent"],
+                vision_ward=participant["visionWardsBoughtInGame"],
+                sight_ward=participant["sightWardsBoughtInGame"],
+                vision_score=participant["visionScore"],
+                skill_used=participant["challenges"]["abilityUses"],
+                spell1=SPELL_NAME[participant["summoner1Id"]],
+                spell2=SPELL_NAME[participant["summoner2Id"]],
+                spell1_used=participant["summoner1Casts"],
+                spell2_used=participant["summoner2Casts"],
+                item1=participant["item0"],
+                item2=participant["item1"],
+                item3=participant["item2"],
+                item4=participant["item3"],
+                item5=participant["item4"],
+                item6=participant["item5"],
+                ward=participant["item6"],
+                main_perk=next((perk for perk in PERKS if perk["id"] == main_perks[0]["perk"]), {"name": ""})["name"],
+                main_perk_part1=next((perk for perk in PERKS if perk["id"] == main_perks[1]["perk"]), {"name": ""})[
+                    "name"],
+                main_perk_part2=next((perk for perk in PERKS if perk["id"] == main_perks[2]["perk"]), {"name": ""})[
+                    "name"],
+                main_perk_part3=next((perk for perk in PERKS if perk["id"] == main_perks[3]["perk"]), {"name": ""})[
+                    "name"],
+                sub_style=participant["perks"]["styles"][1]["style"],
+                sub_perk_part1=next((perk for perk in PERKS if perk["id"] == sub_perks[0]["perk"]), {"name": ""})[
+                    "name"],
+                sub_perk_part2=next((perk for perk in PERKS if perk["id"] == sub_perks[1]["perk"]), {"name": ""})[
+                    "name"],
+                offense_perk=participant["perks"]["statPerks"]["offense"],
+                flex_perk=participant["perks"]["statPerks"]["flex"],
+                defense_perk=participant["perks"]["statPerks"]["defense"],
+            )
+            self.riot_repository.save_participant(db_participant)
+
+            summoners["puuid"].append(puuid)
+            summoners["game_name"].append(participant["riotIdGameName"])
+            summoners["tag_line"].append(participant["riotIdTagline"])
+        return summoners
+
+    async def save_match(self, match):
+        match_id = match["metadata"]["matchId"]
+        game_start_at = int(str(match["info"]["gameCreation"])[:-3])
+        game_end_at = int(str(match["info"]["gameEndTimestamp"])[:-3])
+        game_duration = match["info"]["gameDuration"]
+        game_type = QUEUE_TYPE[match["info"]["queueId"]]
+        self.riot_repository.save_match(match_id, game_start_at, game_end_at, game_duration, game_type)
