@@ -8,10 +8,10 @@ from strawberry.schema.config import StrawberryConfig
 
 from app.controller.summoner.types.summoner_type import SummonerType
 from app.controller.summoner.types.this_week_type import ThisWeekType
-from app.controller.summoner.types.match_type import ParticipantType, MatchType
 from app.domain.restapi.tables import Summoner, Participant, Match, User
 from app.database import get_db
 from app.repository.riot.riot_repository import RiotRepository
+from app.utility.error.errors import SummonerNotFound
 
 riot_repository = RiotRepository()
 season_started = os.getenv('SEASON_STARTED_TIME')
@@ -22,10 +22,8 @@ class Query:
     @strawberry.field(description="소환사 조회")
     async def summoners(self) -> List[SummonerType]:
         db = next(get_db())
-        summoners = db.query(Summoner).all()
+        summoners = db.query(Summoner).join(User, Summoner.puuid == User.puuid).all()
         return [SummonerType(
-            puuid=summoner.puuid,
-            id=summoner.id,
             game_name=summoner.game_name,
             tag_line=summoner.tag_line,
             profile_icon=summoner.profile_icon,
@@ -48,9 +46,9 @@ class Query:
                     .filter(Summoner.game_name == game_name)
                     .filter(Summoner.tag_line == tag_line)
                     .first())
+        if summoner is None:
+            raise SummonerNotFound(game_name=game_name, tag_line=tag_line)
         return SummonerType(
-            puuid=summoner.puuid,
-            id=summoner.id,
             game_name=summoner.game_name,
             tag_line=summoner.tag_line,
             profile_icon=summoner.profile_icon,
@@ -130,33 +128,33 @@ class Query:
     #     limit = 10
     #
     #     match_ids = db.query(Match.match_id).offset(offset).limit(limit).all()
-        # for match_id in match_ids:
-        #     participants = (db.query(Participant.puuid)
-        #                     .select_from(Participant)
-        #                     .join(Match)
-        #                     .filter(Match.match_id == match_id)
-        #                     .all())
-        #     part_list = [ParticipantType(
-        #         game_name=participant.game_name
-        #         tag_line=participant.
-        #         solo_tier=participant.
-        #         level=participant.
-        #         champion=participant.
-        #         spell1=participant.
-        #         spell2=participant.
-        #         main_perk=participant.
-        #         sub_perk=participant.
-        #         kill=participant.
-        #         death=participant.
-        #         assist=participant.
-        #         damage=participant.
-        #         gain_damage=participant.
-        #         sight_ward=participant.
-        #         vision_ward=participant.
-        #         vision_score=participant.
-        #         items: List[int]
-        #         ward
-        #     ) for participant in participants]
+    # for match_id in match_ids:
+    #     participants = (db.query(Participant.puuid)
+    #                     .select_from(Participant)
+    #                     .join(Match)
+    #                     .filter(Match.match_id == match_id)
+    #                     .all())
+    #     part_list = [ParticipantType(
+    #         game_name=participant.game_name
+    #         tag_line=participant.
+    #         solo_tier=participant.
+    #         level=participant.
+    #         champion=participant.
+    #         spell1=participant.
+    #         spell2=participant.
+    #         main_perk=participant.
+    #         sub_perk=participant.
+    #         kill=participant.
+    #         death=participant.
+    #         assist=participant.
+    #         damage=participant.
+    #         gain_damage=participant.
+    #         sight_ward=participant.
+    #         vision_ward=participant.
+    #         vision_score=participant.
+    #         items: List[int]
+    #         ward
+    #     ) for participant in participants]
 
 
 schema = strawberry.Schema(query=Query, config=StrawberryConfig(auto_camel_case=False))
