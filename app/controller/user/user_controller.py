@@ -7,10 +7,10 @@ user_controller = APIRouter(prefix="/api/user", tags=["user"])
 user_service = UserService()
 
 
-@user_controller.post('', description="대충 유저 등록")
-async def assign_user(user_model: UserRequestModel) -> JwtModel:
+@user_controller.post('', description="대충 유저 등록", response_model=JwtModel)
+async def assign_user(user_model: UserRequestModel):
     response = await user_service.assign_user(user_model.auth_code)
-    return JwtModel(token=response["token"], game_name=response["game_name"])
+    return JwtModel(token=response["token"], game_name=response["game_name"], tag_line=response["tag_line"])
 
 
 # @user_controller.post("", responses=None)

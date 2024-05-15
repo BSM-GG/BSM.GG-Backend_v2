@@ -8,3 +8,4 @@ class UserRequestModel(BaseModel):
 class JwtModel(BaseModel):
     token: str
     game_name: str
+    tag_line: str

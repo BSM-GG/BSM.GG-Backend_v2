@@ -1,4 +1,5 @@
 import os
+from typing import List, Dict, Any
 
 from dotenv import load_dotenv
 
@@ -76,13 +77,14 @@ class RiotService:
                 summoners = await self.save_participants(match_id, participants)
                 last_match_time = int(str(match["info"]["gameEndTimestamp"])[:-3])
 
-                exist_puuids = await self.riot_repository.find_summoner_puuids(summoners["puuid"])
-                filtered_summoners = list(filter(lambda item: item["puuid"] not in exist_puuids, summoners))
-                for f_summoner in filtered_summoners:
+                summoner_puuids = list(map(lambda s: s["puuid"], summoners))
+                exist_puuids = await self.riot_repository.find_summoner_puuids(summoner_puuids)
+                filtered_summoners = list(filter(lambda s: s["puuid"] not in exist_puuids, summoners))
+                for filtered_summoner in filtered_summoners:
                     await self.save_summoner(
-                        f_summoner["puuid"],
-                        f_summoner["game_name"],
-                        f_summoner["tag_line"],
+                        filtered_summoner["puuid"],
+                        filtered_summoner["game_name"],
+                        filtered_summoner["tag_line"],
                     )
 
             if last_match_time != 0:
@@ -91,15 +93,11 @@ class RiotService:
             if len(match_ids) < 100:
                 break
 
-        mosts = self.riot_repository.find_summoner_most(summoner.puuid)
+        mosts = await self.riot_repository.find_summoner_most(summoner.puuid)
         self.riot_repository.update_summoner_mosts(summoner.puuid, mosts)
 
-    async def save_participants(self, match_id, participants: list) -> dict:
-        summoners = {
-            "puuid": [],
-            "game_name": [],
-            "tag_line": [],
-        }
+    async def save_participants(self, match_id, participants: list) -> list[dict]:
+        summoners = []
         for participant in participants:
             puuid = participant["puuid"]
             if await self.riot_get_service.find_participant(puuid, match_id):
@@ -157,9 +155,12 @@ class RiotService:
             )
             self.riot_repository.save_participant(db_participant)
 
-            summoners["puuid"].append(puuid)
-            summoners["game_name"].append(participant["riotIdGameName"])
-            summoners["tag_line"].append(participant["riotIdTagline"])
+            summoners.append({
+                "puuid": puuid,
+                "game_name": participant["riotIdGameName"],
+                "tag_line": participant["riotIdTagline"],
+            })
+
         return summoners
 
     async def save_match(self, match):

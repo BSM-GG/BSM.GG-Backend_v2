@@ -38,8 +38,8 @@ class RiotRepository:
         self.db.refresh(db_summoner)
 
     async def find_summoner_by_name_and_tag(self, game_name, tag_line):
-        return self.db.query(Summoner).filter(Summoner.game_name == game_name).filter(
-            Summoner.tag_line == tag_line).first()
+        return (self.db.query(Summoner).filter(Summoner.game_name == game_name)
+                .filter(Summoner.tag_line == tag_line).first())
 
     async def find_summoner_by_puuid(self, puuid: str):
         return self.db.query(Summoner).filter(Summoner.puuid == puuid).first()
@@ -63,8 +63,7 @@ class RiotRepository:
                 .all())
 
     async def find_summoner_puuids(self, puuids: list[str]):
-        return self.db.query(Participant.puuid).filter(Participant.puuid in puuids).all()
-
+        return list(map(lambda x: x.puuid, self.db.query(Summoner.puuid).filter(Summoner.puuid.in_(puuids)).all()))
 
     def update_summoner_mosts(self, puuid, mosts):
         summoner = self.db.query(Summoner).filter(Summoner.puuid == puuid).first()
@@ -77,6 +76,7 @@ class RiotRepository:
             summoner.most2 = mosts[1][0]
         if length == 3:
             summoner.most3 = mosts[2][0]
+        # summoner.most3 = mosts[:-1][0]
         self.db.commit()
 
     # endregion

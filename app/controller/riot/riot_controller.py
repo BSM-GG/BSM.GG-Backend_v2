@@ -12,7 +12,6 @@ async def assign_summoner(
         summoner: SummonerModel,
         authorization: str = Header(default=None),
 ) -> None:
-    if authorization == "": return
     await riot_service.assign_summoner(authorization, summoner.game_name, summoner.tag_line)
 
 

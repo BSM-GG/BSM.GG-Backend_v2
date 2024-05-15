@@ -12,7 +12,8 @@ db_host = os.getenv('DB_HOST')
 db_name = os.getenv('DB_NAME')
 
 engine = create_engine(
-    f'mysql://{user_name}:{user_pw}@{db_host}/{db_name}?charset=utf8mb4'
+    f'mysql://{user_name}:{user_pw}@{db_host}/{db_name}?charset=utf8mb4',
+    echo=True
 )
 
 SessionLocal = sessionmaker(

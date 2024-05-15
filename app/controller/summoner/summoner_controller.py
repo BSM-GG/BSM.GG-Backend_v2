@@ -4,6 +4,7 @@ from typing import List
 import strawberry
 from strawberry.fastapi import GraphQLRouter
 from sqlalchemy import func
+from strawberry.schema.config import StrawberryConfig
 
 from app.controller.summoner.types.summoner_type import SummonerType
 from app.controller.summoner.types.this_week_type import ThisWeekType
@@ -158,5 +159,5 @@ class Query:
         #     ) for participant in participants]
 
 
-schema = strawberry.Schema(query=Query)
+schema = strawberry.Schema(query=Query, config=StrawberryConfig(auto_camel_case=False))
 summoner_controller = GraphQLRouter(schema)

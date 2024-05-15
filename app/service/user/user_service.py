@@ -30,7 +30,6 @@ class UserService:
         self.user_repository = UserRepository()
 
     async def assign_user(self, auth_code: str) -> dict:
-
         auth_token = await self.auth_service.get_token(auth_code)
         if auth_token is None:
             raise InvalidAuthorizationCode(auth_code=auth_code)
@@ -42,17 +41,22 @@ class UserService:
             self.user_repository.save(user_uuid, user)
             return {
                 "token": self.jwt_util.create_token(user_uuid),
-                "game_name": ""
+                "game_name": "",
+                "tag_line": "",
             }
 
-        summoner_name = ""
         summoner = await self.riot_get_service.find_summoner_by_puuid(db_user.puuid)
-        if summoner is not None:
-            summoner_name = summoner.game_name
+        if summoner is None:
+            return {
+                "token": self.jwt_util.create_token(db_user.uuid),
+                "game_name": "",
+                "tag_line": "",
+            }
 
         return {
             "token": self.jwt_util.create_token(db_user.uuid),
-            "game_name": summoner_name
+            "game_name": summoner.game_name,
+            "tag_line": summoner.tag_line,
         }
 
         # await self.riot_service.update_record(game_name, tag_line)
