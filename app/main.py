@@ -26,6 +26,6 @@ async def say_hello(name: str):
 
 app.include_router(user_controller)
 app.include_router(riot_controller)
-app.include_router(summoner_controller, prefix="/graphql", tags=["graphql"])
+app.include_router(summoner_controller, prefix="/api/graphql", tags=["graphql"])
 
 add_exception_handler(app)

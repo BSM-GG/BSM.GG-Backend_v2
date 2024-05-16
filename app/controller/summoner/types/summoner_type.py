@@ -5,6 +5,7 @@ import strawberry
 
 @strawberry.type
 class SummonerType:
+    # summoner info
     game_name: str
     tag_line: str
     profile_icon: int
@@ -18,3 +19,15 @@ class SummonerType:
     flex_wins: int
     flex_loses: int
     most_champions: List[Optional[str]]
+
+    # user info
+    email: str
+    code: int
+    nickname: str
+    name: str
+    role: str
+    is_graduate: bool
+    enrolled_at: int
+    grade: int
+    class_no: int
+    student_no: int

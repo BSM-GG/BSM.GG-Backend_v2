@@ -22,21 +22,31 @@ class Query:
     @strawberry.field(description="소환사 조회")
     async def summoners(self) -> List[SummonerType]:
         db = next(get_db())
-        summoners = db.query(Summoner).join(User, Summoner.puuid == User.puuid).all()
+        summoners = db.query(Summoner, User).join(User, Summoner.puuid == User.puuid).all()
         return [SummonerType(
-            game_name=summoner.game_name,
-            tag_line=summoner.tag_line,
-            profile_icon=summoner.profile_icon,
-            level=summoner.level,
-            solo_tier=summoner.solo_tier,
-            solo_lp=summoner.solo_lp,
-            solo_wins=summoner.solo_wins,
-            solo_loses=summoner.solo_loses,
-            flex_tier=summoner.flex_tier,
-            flex_lp=summoner.flex_lp,
-            flex_wins=summoner.flex_wins,
-            flex_loses=summoner.flex_loses,
-            most_champions=[summoner.most1, summoner.most2, summoner.most3],
+            game_name=summoner[0].game_name,
+            tag_line=summoner[0].tag_line,
+            profile_icon=summoner[0].profile_icon,
+            level=summoner[0].level,
+            solo_tier=summoner[0].solo_tier,
+            solo_lp=summoner[0].solo_lp,
+            solo_wins=summoner[0].solo_wins,
+            solo_loses=summoner[0].solo_loses,
+            flex_tier=summoner[0].flex_tier,
+            flex_lp=summoner[0].flex_lp,
+            flex_wins=summoner[0].flex_wins,
+            flex_loses=summoner[0].flex_loses,
+            most_champions=[summoner[0].most1, summoner[0].most2, summoner[0].most3],
+            email=summoner[1].email,
+            code=summoner[1].code,
+            nickname=summoner[1].nickname,
+            name=summoner[1].name,
+            role=summoner[1].role,
+            is_graduate=summoner[1].is_graduate,
+            enrolled_at=summoner[1].enrolled_at,
+            grade=summoner[1].grade,
+            class_no=summoner[1].class_no,
+            student_no=summoner[1].student_no,
         ) for summoner in summoners]
 
     @strawberry.field(description="이름, 태그로 소환사 조회")
@@ -48,7 +58,7 @@ class Query:
                     .first())
         if summoner is None:
             raise SummonerNotFound(game_name=game_name, tag_line=tag_line)
-        return SummonerType(
+        response_model = SummonerType(
             game_name=summoner.game_name,
             tag_line=summoner.tag_line,
             profile_icon=summoner.profile_icon,
@@ -62,7 +72,30 @@ class Query:
             flex_wins=summoner.flex_wins,
             flex_loses=summoner.flex_loses,
             most_champions=[summoner.most1, summoner.most2, summoner.most3],
+            email="",
+            code=0,
+            nickname="",
+            name="",
+            role="",
+            is_graduate=False,
+            enrolled_at=0,
+            grade=0,
+            class_no=0,
+            student_no=0,
         )
+        user = db.query(User).filter(User.puuid == summoner.puuid).first()
+        if user is not None:
+            response_model.email = user.email
+            response_model.code = user.code
+            response_model.nickname = user.nickname
+            response_model.name = user.name
+            response_model.role = user.role
+            response_model.is_graduate = user.is_graduate
+            response_model.enrolled_at = user.enrolled_at
+            response_model.grade = user.grade
+            response_model.class_no = user.class_no
+            response_model.student_no = user.student_no
+        return response_model
 
     @strawberry.field(description="이주의 롤창")
     async def this_week(self) -> ThisWeekType:
