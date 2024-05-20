@@ -120,3 +120,9 @@ class SummonerRepository:
                     .order_by(func.count(Participant.puuid).desc())
                     .first())
         return summoner
+
+    def find_summoner_count(self):
+        return (self.db.query(Summoner)
+                .select_from(Summoner)
+                .join(User, Summoner.puuid == User.puuid)
+                .count())

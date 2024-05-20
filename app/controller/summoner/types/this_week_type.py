@@ -19,7 +19,6 @@ class ThisWeekType:
     flex_loses: int
     most_champions: List[Optional[str]]
 
-
     played_games: int
     win_games: int
     lose_games: int

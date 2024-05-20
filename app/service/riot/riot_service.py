@@ -38,8 +38,8 @@ class RiotService:
                 raise RiotAPIForbidden()
             if response['status']['status_code'] == 404:
                 raise SummonerNotFoundByRiotAPI(game_name=game_name, tag_line=tag_line)
-        id = await self.save_summoner(response["puuid"], game_name, tag_line)
-        rank = await self.riot_api_service.get_rank_info_by_riotAPI(id)
+        summoner_id = await self.save_summoner(response["puuid"], game_name, tag_line)
+        rank = await self.riot_api_service.get_rank_info_by_riotAPI(summoner_id)
         solo = list(filter(lambda item: item['queueType'] == 'RANKED_SOLO_5x5', rank))
         flex = list(filter(lambda item: item['queueType'] == 'RANKED_FLEX_SR', rank))
         summoner = await self.riot_repository.update_summoner_rank(response["puuid"], solo, flex)
@@ -84,15 +84,6 @@ class RiotService:
                         s["game_name"],
                         s["tag_line"],
                     )
-                # summoner_puuids = list(map(lambda s: s["puuid"], summoners))
-                # exist_puuids = await self.riot_repository.find_summoner_puuids(summoner_puuids)
-                # filtered_summoners = list(filter(lambda s: s["puuid"] not in exist_puuids, summoners))
-                # for filtered_summoner in filtered_summoners:
-                #     await self.save_summoner(
-                #         filtered_summoner["puuid"],
-                #         filtered_summoner["game_name"],
-                #         filtered_summoner["tag_line"],
-                #     )
 
             if last_match_time != 0:
                 self.riot_repository.update_summoner_last_updated(summoner.puuid, last_match_time)

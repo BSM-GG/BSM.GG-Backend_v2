@@ -1,5 +1,5 @@
 from app.controller.summoner.types.match_type import ParticipantType, MatchType, MatchResponseType
-from app.controller.summoner.types.summoner_type import SummonerType
+from app.controller.summoner.types.summoner_type import SummonerType, SummonerRankType
 from app.controller.summoner.types.this_week_type import ThisWeekType
 from app.repository.riot.riot_repository import RiotRepository
 from app.repository.summoner.summoner_repository import SummonerRepository
@@ -82,14 +82,22 @@ class SummonerService:
         response = []
         for i in range(len(summoners)):
             response.append(to_summoner_type(summoners[i], users[i]))
-        return response
+        count = self.summoner_repository.find_summoner_count()
+        return SummonerRankType(
+            summoner_types=response,
+            user_count=count
+        )
 
-    async def find_summoner(self, game_name: str, tag_line: str):
+    async def find_summoner_by_name(self, game_name: str, tag_line: str):
         summoner = await self.summoner_repository.find_summoner_rank(game_name, tag_line)
         if summoner is None:
             raise SummonerNotFound(game_name=game_name, tag_line=tag_line)
+        count = self.summoner_repository.find_summoner_count()
         user = await self.user_get_service.get_user_by_puuid(summoner.puuid)
-        return to_summoner_type(summoner, user)
+        return SummonerRankType(
+            summoner_types=[to_summoner_type(summoner, user)],
+            user_count=count
+        )
 
     async def find_lol_chang(self):
         lol_chang = await self.summoner_repository.find_lol_chang()

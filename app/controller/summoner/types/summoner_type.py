@@ -34,3 +34,9 @@ class SummonerType:
 
     rank_point: int
     ranking: int
+
+
+@strawberry.type
+class SummonerRankType:
+    summoner_types: List[SummonerType]
+    user_count: int
