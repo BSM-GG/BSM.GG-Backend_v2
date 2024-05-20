@@ -91,6 +91,7 @@ class RiotService:
             if len(match_ids) < 100:
                 break
 
+        await self.assign_summoner("", game_name, tag_line)
         mosts = await self.riot_repository.find_summoner_most(summoner.puuid)
         self.riot_repository.update_summoner_mosts(summoner.puuid, mosts)
 

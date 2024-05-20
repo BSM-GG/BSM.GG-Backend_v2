@@ -3,7 +3,6 @@ from app.controller.summoner.types.summoner_type import SummonerType, SummonerRa
 from app.controller.summoner.types.this_week_type import ThisWeekType
 from app.repository.riot.riot_repository import RiotRepository
 from app.repository.summoner.summoner_repository import SummonerRepository
-from app.repository.user.user_repository import UserRepository
 from app.service.riot.riot_get_service import RiotGetService
 from app.service.user.user_get_service import UserGetService
 from app.utility.error.errors import SummonerNotFound

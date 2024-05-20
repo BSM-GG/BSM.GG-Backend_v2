@@ -19,6 +19,17 @@ class ThisWeekType:
     flex_loses: int
     most_champions: List[Optional[str]]
 
+    email: str
+    code: int
+    nickname: str
+    name: str
+    role: str
+    is_graduate: bool
+    enrolled_at: int
+    grade: int
+    class_no: int
+    student_no: int
+
     played_games: int
     win_games: int
     lose_games: int
@@ -34,16 +45,5 @@ class ThisWeekType:
     ward_place: int
     vision_score: int
     cs: int
-
-    email: str
-    code: int
-    nickname: str
-    name: str
-    role: str
-    is_graduate: bool
-    enrolled_at: int
-    grade: int
-    class_no: int
-    student_no: int
 
     ranking: int

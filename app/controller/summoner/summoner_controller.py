@@ -22,7 +22,7 @@ class Query:
         return await summoner_service.find_summoners()
 
     @strawberry.field(description="이름, 태그로 소환사 조회")
-    async def summoner(self, game_name: str, tag_line: str) -> SummonerRankType:
+    async def summoner(self, game_name: str = "", tag_line: str = "") -> SummonerRankType:
         return await summoner_service.find_summoner_by_name(game_name, tag_line)
 
     @strawberry.field(description="이주의 롤창")
