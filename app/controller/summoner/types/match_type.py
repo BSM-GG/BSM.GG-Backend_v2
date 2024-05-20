@@ -10,6 +10,7 @@ class ParticipantType:
     solo_tier: str
     level: int
     champion: str
+    champion_level: str
     spell1: str
     spell2: str
     main_perk: str
@@ -24,6 +25,7 @@ class ParticipantType:
     vision_score: int
     items: List[int]
     ward: int
+    is_summoner: bool
 
 
 @strawberry.type
@@ -33,4 +35,9 @@ class MatchType:
     game_start_at: int
     game_duration: int
     participants: List[ParticipantType]
+
+
+@strawberry.type
+class MatchResponseType:
+    matches: List[MatchType]
     page: int

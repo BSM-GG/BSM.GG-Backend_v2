@@ -45,7 +45,7 @@ class UserService:
                 "tag_line": "",
             }
 
-        summoner = await self.riot_get_service.find_summoner_by_puuid(db_user.puuid)
+        summoner = await self.riot_get_service.get_summoner_by_puuid(db_user.puuid)
         if summoner is None:
             return {
                 "token": self.jwt_util.create_token(db_user.uuid),

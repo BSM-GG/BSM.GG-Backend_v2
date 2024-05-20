@@ -7,12 +7,13 @@ riot_controller = APIRouter(prefix="/api/riot", tags=["riot"])
 riot_service = RiotService()
 
 
-@riot_controller.post("/summoner", description="소환사 등록")
+@riot_controller.post("/summoner", description="소환사 등록", response_model=None)
 async def assign_summoner(
         summoner: SummonerModel,
         authorization: str = Header(default=None),
-) -> None:
-    await riot_service.assign_summoner(authorization, summoner.game_name, summoner.tag_line)
+) -> SummonerModel:
+    summoner = await riot_service.assign_summoner(authorization, summoner.game_name, summoner.tag_line)
+    return SummonerModel(game_name=summoner.game_name, tag_line=summoner.tag_line)
 
 
 @riot_controller.post("/match", description="전적 갱신")

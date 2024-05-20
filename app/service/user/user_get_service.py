@@ -11,3 +11,6 @@ class UserGetService:
 
     async def get_user_by_uuid(self, uuid: str):
         return await self.user_repository.find_user_by_uuid(uuid)
+
+    async def get_user_by_puuid(self, puuid: str):
+        return await self.user_repository.find_user_by_puuid(puuid)

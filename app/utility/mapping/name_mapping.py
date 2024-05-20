@@ -1483,6 +1483,40 @@ PERKS = [
     }
 ]
 
+TIER = {
+    "CHALLENGER I":   2800,
+    "GRAND MASTER I": 2800,
+    "MASTER I":       2800,
+    "DIAMOND I":      2700,
+    "DIAMOND II":     2600,
+    "DIAMOND III":    2500,
+    "DIAMOND IV":     2400,
+    "EMERALD I":      2300,
+    "EMERALD II":     2200,
+    "EMERALD III":    2100,
+    "EMERALD IV":     2000,
+    "PLATINUM I":     1900,
+    "PLATINUM II":    1800,
+    "PLATINUM III":   1700,
+    "PLATINUM IV":    1600,
+    "GOLD I":         1500,
+    "GOLD II":        1400,
+    "GOLD III":       1300,
+    "GOLD IV":        1200,
+    "SILVER I":       1100,
+    "SILVER II":      1000,
+    "SILVER III":      900,
+    "SILVER IV":       800,
+    "BRONZE I":        700,
+    "BRONZE II":       600,
+    "BRONZE III":      500,
+    "BRONZE IV":       400,
+    "IRON I":          300,
+    "IRON II":         200,
+    "IRON III":        100,
+    "IRON IV":           0,
+}
+
 SPELL_NAME = {
     1: "SummonerBoost",
     3: "SummonerExhaust",

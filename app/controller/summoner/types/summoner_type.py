@@ -31,3 +31,6 @@ class SummonerType:
     grade: int
     class_no: int
     student_no: int
+
+    rank_point: int
+    ranking: int

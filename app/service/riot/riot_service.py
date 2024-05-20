@@ -1,16 +1,15 @@
 import os
-from typing import List, Dict, Any
 
 from dotenv import load_dotenv
 
 from app.domain.restapi.tables import Participant
 from app.repository.riot.riot_repository import RiotRepository
 from app.repository.user.user_repository import UserRepository
-from app.service.riot.mapping.name_mapping import QUEUE_TYPE, PERKS, SPELL_NAME
+from app.utility.mapping.name_mapping import QUEUE_TYPE, PERKS, SPELL_NAME
 from app.service.riot.riot_api_service import RiotAPIService
 from app.service.riot.riot_get_service import RiotGetService
 from app.service.user.user_update_service import UserUpdateService
-from app.utility.error.errors import InvalidToken, SummonerNotFoundByRiotAPI, RiotAPIForbidden, SummonerNotFound, NoVPN
+from app.utility.error.errors import InvalidToken, SummonerNotFoundByRiotAPI, RiotAPIForbidden, SummonerNotFound
 from app.utility.jwt.jwt_util import JwtUtil
 
 load_dotenv()
@@ -39,25 +38,27 @@ class RiotService:
                 raise RiotAPIForbidden()
             if response['status']['status_code'] == 404:
                 raise SummonerNotFoundByRiotAPI(game_name=game_name, tag_line=tag_line)
-        await self.save_summoner(response["puuid"], game_name, tag_line)
+        id = await self.save_summoner(response["puuid"], game_name, tag_line)
+        rank = await self.riot_api_service.get_rank_info_by_riotAPI(id)
+        solo = list(filter(lambda item: item['queueType'] == 'RANKED_SOLO_5x5', rank))
+        flex = list(filter(lambda item: item['queueType'] == 'RANKED_FLEX_SR', rank))
+        summoner = await self.riot_repository.update_summoner_rank(response["puuid"], solo, flex)
 
         if authorization == "": return
         user = await self.jwt_util.decode_token(authorization)
         if user is None:
             raise InvalidToken(token=authorization)
         await self.user_update_service.update_puuid(user.uuid, response["puuid"])
-        return self.jwt_util.create_token(username=user.uuid)
+        return summoner
 
     async def save_summoner(self, puuid: str, game_name: str, tag_line: str):
         summoner = await self.riot_api_service.get_summoner_info_by_riotAPI(puuid)
-        rank = await self.riot_api_service.get_rank_info_by_riotAPI(summoner["id"])
-        solo = list(filter(lambda item: item['queueType'] == 'RANKED_SOLO_5x5', rank))
-        flex = list(filter(lambda item: item['queueType'] == 'RANKED_FLEX_SR', rank))
-        await self.riot_repository.save(summoner, solo, flex, game_name, tag_line)
+        await self.riot_repository.save(summoner, game_name, tag_line)
+        return summoner["id"]
 
     async def update_record(self, game_name: str, tag_line: str):
 
-        summoner = await self.riot_get_service.find_summoner_by_game_name_and_tag_line(game_name, tag_line)
+        summoner = await self.riot_get_service.get_summoner_by_game_name_and_tag_line(game_name, tag_line)
         if not summoner:
             raise SummonerNotFound(game_name=game_name, tag_line=tag_line)
 
@@ -68,7 +69,7 @@ class RiotService:
 
             last_match_time = 0
             for match_id in match_ids:
-                if await self.riot_get_service.find_match(match_id):
+                if await self.riot_get_service.get_match(match_id):
                     continue
                 match = await self.riot_api_service.get_match_data_by_riotAPI(match_id)
                 await self.save_match(match)
@@ -77,15 +78,21 @@ class RiotService:
                 summoners = await self.save_participants(match_id, participants)
                 last_match_time = int(str(match["info"]["gameEndTimestamp"])[:-3])
 
-                summoner_puuids = list(map(lambda s: s["puuid"], summoners))
-                exist_puuids = await self.riot_repository.find_summoner_puuids(summoner_puuids)
-                filtered_summoners = list(filter(lambda s: s["puuid"] not in exist_puuids, summoners))
-                for filtered_summoner in filtered_summoners:
+                for s in summoners:
                     await self.save_summoner(
-                        filtered_summoner["puuid"],
-                        filtered_summoner["game_name"],
-                        filtered_summoner["tag_line"],
+                        s["puuid"],
+                        s["game_name"],
+                        s["tag_line"],
                     )
+                # summoner_puuids = list(map(lambda s: s["puuid"], summoners))
+                # exist_puuids = await self.riot_repository.find_summoner_puuids(summoner_puuids)
+                # filtered_summoners = list(filter(lambda s: s["puuid"] not in exist_puuids, summoners))
+                # for filtered_summoner in filtered_summoners:
+                #     await self.save_summoner(
+                #         filtered_summoner["puuid"],
+                #         filtered_summoner["game_name"],
+                #         filtered_summoner["tag_line"],
+                #     )
 
             if last_match_time != 0:
                 self.riot_repository.update_summoner_last_updated(summoner.puuid, last_match_time)
@@ -100,7 +107,7 @@ class RiotService:
         summoners = []
         for participant in participants:
             puuid = participant["puuid"]
-            if await self.riot_get_service.find_participant(puuid, match_id):
+            if await self.riot_get_service.get_participant_by_puuid_and_match_id(puuid, match_id):
                 continue
 
             main_perks = participant["perks"]["styles"][0]["selections"]

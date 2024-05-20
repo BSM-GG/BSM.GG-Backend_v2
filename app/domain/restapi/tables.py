@@ -43,6 +43,7 @@ class Summoner(Base):
     tag_line = Column(String(20))
     profile_icon = Column(Integer, default=0)
     level = Column(Integer)
+    rank_point = Column(Integer, default=0)
     solo_tier = Column(String(50), default="")
     solo_lp = Column(Integer, default=0)
     solo_wins = Column(Integer, default=0)
