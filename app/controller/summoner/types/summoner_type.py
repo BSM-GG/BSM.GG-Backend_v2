@@ -32,7 +32,7 @@ class SummonerType:
     class_no: int
     student_no: int
 
-    rank_point: int
+    solo_point: int
     ranking: int
 
 

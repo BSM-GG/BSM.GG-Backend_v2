@@ -33,7 +33,7 @@ def to_summoner_type(summoner, user):
         grade=0,
         class_no=0,
         student_no=0,
-        rank_point=0,
+        solo_point=0,
         ranking=0,
     )
     if summoner is not None:
@@ -50,7 +50,7 @@ def to_summoner_type(summoner, user):
         summoner_model.flex_wins = summoner.flex_wins
         summoner_model.flex_loses = summoner.flex_loses
         summoner_model.most_champions = [summoner.most1, summoner.most2, summoner.most3]
-        summoner_model.rank_point = summoner.rank_point
+        summoner_model.solo_point = summoner.solo_point
         summoner_model.ranking = summoner.ranking
     if user is not None:
         summoner_model.email = user.email
@@ -160,6 +160,9 @@ class SummonerService:
                     game_name=participant.game_name,
                     tag_line=participant.tag_line,
                     solo_tier=participant.solo_tier,
+                    solo_point=participant.solo_point,
+                    flex_tier=participant.flex_tier,
+                    flex_point=participant.flex_point,
                     level=participant.level,
                     champion=participant.champion,
                     champion_level=participant.champion_level,

@@ -1,4 +1,4 @@
-from sqlalchemy import func, desc
+from sqlalchemy import func, desc, select
 
 from app.database import get_db
 from app.domain.restapi.tables import Summoner, Match, Participant, User
@@ -37,12 +37,13 @@ class RiotRepository:
             summoner.solo_lp = solo[0]["leaguePoints"]
             summoner.solo_wins = solo[0]["wins"]
             summoner.solo_loses = solo[0]["losses"]
-            summoner.rank_point = TIER[summoner.solo_tier] + summoner.solo_lp
+            summoner.solo_point = TIER[summoner.solo_tier] + summoner.solo_lp
         if len(flex) != 0:
             summoner.flex_tier = f"{flex[0]['tier']} {flex[0]['rank']}"
             summoner.flex_lp = flex[0]["leaguePoints"]
             summoner.flex_wins = flex[0]["wins"]
             summoner.flex_loses = flex[0]["losses"]
+            summoner.flex_point = TIER[summoner.flex_tier] + summoner.flex_lp
         self.db.commit()
         return summoner
 
@@ -126,14 +127,19 @@ class RiotRepository:
 
     # endregion
     async def find_matches_by_puuid(self, puuid, offset, limit):
-        subquery = (self.db.query(Participant.match_id)
-                    .join(Match)
-                    .filter(Participant.puuid == puuid)
-                    .filter(Match.game_type != "아레나")
-                    .subquery())
+        subquery = (select(Participant.match_id)
+                    .select_from(Participant)
+                    .join(Match, Participant.match_id == Match.match_id)
+                    .where(Participant.puuid == puuid)
+                    .where(Match.game_type != "아레나"))
+
+        # Perform the main query using the explicit select() statement in the in_() method
         return (self.db.query(Match)
-                .filter(Match.match_id.in_(subquery))
-                .offset(offset).limit(limit).all())
+                .select_from(Match)
+                .where(Match.match_id.in_(subquery))
+                .offset(offset)
+                .limit(limit)
+                .all())
 
     async def find_participant_in_match(self, match_id):
         return (self.db.query(
@@ -141,6 +147,9 @@ class RiotRepository:
             Summoner.game_name,
             Summoner.tag_line,
             Summoner.solo_tier,
+            Summoner.solo_point,
+            Summoner.flex_tier,
+            Summoner.flex_point,
             Summoner.level,
             Participant.champion,
             Participant.champion_level,

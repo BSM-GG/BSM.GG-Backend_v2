@@ -38,9 +38,9 @@ class Query:
     async def matches(self, name: str, page: int = 0) -> MatchResponseType:
         return await summoner_service.get_matches(name, page)
 
-    #@strawberry.field(description="소환사 조회")
-    #async def summoners(self) -> SummonerRankType:
-    #    return await summoner_service.find_summoners()
+    @strawberry.field(description="원포올 API")
+    async def all_in_one(self, name: str, page: int = 0) -> SummonerRankType:
+        return await summoner_service.find()
 
 
 schema = strawberry.Schema(query=Query, config=StrawberryConfig(auto_camel_case=False))

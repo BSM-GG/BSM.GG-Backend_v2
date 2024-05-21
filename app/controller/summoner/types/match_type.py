@@ -8,6 +8,9 @@ class ParticipantType:
     game_name: str
     tag_line: str
     solo_tier: str
+    solo_point: str
+    flex_tier: str
+    flex_point: str
     level: int
     champion: str
     champion_level: str

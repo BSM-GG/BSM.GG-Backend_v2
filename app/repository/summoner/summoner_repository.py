@@ -34,9 +34,9 @@ class SummonerRepository:
             Summoner.most2,
             Summoner.most3,
             Summoner.last_updated,
-            Summoner.rank_point,
+            Summoner.solo_point,
             func.rank().over(
-                order_by=Summoner.rank_point.desc(),
+                order_by=Summoner.solo_point.desc(),
                 partition_by=Summoner.puuid
             ).label("ranking"),
         ).filter(Summoner.puuid.in_(user_puuids)).all()
@@ -61,9 +61,9 @@ class SummonerRepository:
             Summoner.most2,
             Summoner.most3,
             Summoner.last_updated,
-            Summoner.rank_point,
+            Summoner.solo_point,
             func.rank().over(
-                order_by=Summoner.rank_point.desc(),
+                order_by=Summoner.solo_point.desc(),
                 partition_by=Summoner.puuid
             ).label("ranking"),
         )
@@ -106,7 +106,7 @@ class SummonerRepository:
             func.sum(Participant.vision_score).label("vision_score"),
             func.sum(Participant.cs).label("cs"),
             func.row_number().over(
-                order_by=Summoner.rank_point.desc(),
+                order_by=Summoner.solo_point.desc(),
                 partition_by=Summoner.puuid
             ).label("ranking")
         )
