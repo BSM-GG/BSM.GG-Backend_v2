@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List, Annotated, Union
 import strawberry
 from strawberry.fastapi import GraphQLRouter
 from strawberry.schema.config import StrawberryConfig
@@ -13,6 +13,11 @@ from app.service.summoner.summoner_service import SummonerService
 summoner_service = SummonerService()
 riot_repository = RiotRepository()
 season_started = os.getenv('SEASON_STARTED_TIME')
+
+# Response = Annotated[
+#     Union[RegisterUserSuccess, UsernameAlreadyExistsError],
+#     strawberry.union("RegisterUserResponse"),
+# ]
 
 
 @strawberry.type
@@ -32,6 +37,10 @@ class Query:
     @strawberry.field(description="전적 조회")
     async def matches(self, name: str, page: int = 0) -> MatchResponseType:
         return await summoner_service.get_matches(name, page)
+
+    #@strawberry.field(description="소환사 조회")
+    #async def summoners(self) -> SummonerRankType:
+    #    return await summoner_service.find_summoners()
 
 
 schema = strawberry.Schema(query=Query, config=StrawberryConfig(auto_camel_case=False))

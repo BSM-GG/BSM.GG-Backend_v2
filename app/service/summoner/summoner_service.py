@@ -172,6 +172,7 @@ class SummonerService:
                     assist=participant.assist,
                     damage=participant.damage,
                     gain_damage=participant.gain_damage,
+                    cs=participant.cs,
                     sight_ward=participant.sight_ward,
                     vision_ward=participant.vision_ward,
                     vision_score=participant.vision_score,

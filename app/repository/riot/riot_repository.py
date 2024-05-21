@@ -153,6 +153,7 @@ class RiotRepository:
             Participant.assist,
             Participant.damage,
             Participant.gain_damage,
+            Participant.cs,
             Participant.sight_ward,
             Participant.vision_ward,
             Participant.vision_score,

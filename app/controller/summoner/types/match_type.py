@@ -20,6 +20,7 @@ class ParticipantType:
     assist: int
     damage: int
     gain_damage: int
+    cs: int
     sight_ward: int
     vision_ward: int
     vision_score: int
