@@ -30,7 +30,7 @@ class Query:
         return await summoner_service.find_lol_chang()
 
     @strawberry.field(description="전적 조회")
-    async def matches(self, name: str, page: int) -> MatchResponseType:
+    async def matches(self, name: str, page: int = 0) -> MatchResponseType:
         return await summoner_service.get_matches(name, page)
 
 

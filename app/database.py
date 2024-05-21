@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -11,22 +13,30 @@ user_pw = os.getenv('USER_PW')
 db_host = os.getenv('DB_HOST')
 db_name = os.getenv('DB_NAME')
 
+
 engine = create_engine(
     f'mysql://{user_name}:{user_pw}@{db_host}/{db_name}?charset=utf8mb4',
+    pool_pre_ping=True,
+    pool_size=10,
+    max_overflow=20,
+    # echo=True
 )
-
 SessionLocal = sessionmaker(
-        autocommit=False,
-        autoflush=False,
-        bind=engine
-    )
+    autocommit=False,
+    autoflush=False,
+    bind=engine,
+)
 
 Base = declarative_base()
 
 
 def get_db():
-    db = SessionLocal()
+    session = SessionLocal()
     try:
-        yield db
+        yield session
+        session.commit()
+    except Exception as e:
+        session.rollback()
+        raise e
     finally:
-        db.close()
+        session.close()
