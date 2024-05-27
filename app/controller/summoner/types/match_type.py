@@ -14,6 +14,7 @@ class ParticipantType:
     level: int
     champion: str
     champion_level: str
+    lane: int
     spell1: str
     spell2: str
     main_perk: str

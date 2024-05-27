@@ -133,7 +133,6 @@ class RiotRepository:
                     .where(Participant.puuid == puuid)
                     .where(Match.game_type != "아레나"))
 
-        # Perform the main query using the explicit select() statement in the in_() method
         return (self.db.query(Match)
                 .select_from(Match)
                 .where(Match.match_id.in_(subquery))
@@ -153,6 +152,7 @@ class RiotRepository:
             Summoner.level,
             Participant.champion,
             Participant.champion_level,
+            Participant.lane,
             Participant.spell1,
             Participant.spell2,
             Participant.main_perk,

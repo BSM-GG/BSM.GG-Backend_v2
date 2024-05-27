@@ -3,6 +3,7 @@ from app.controller.summoner.types.summoner_type import SummonerType, SummonerRa
 from app.controller.summoner.types.this_week_type import ThisWeekType
 from app.repository.riot.riot_repository import RiotRepository
 from app.repository.summoner.summoner_repository import SummonerRepository
+from app.service.riot.riot_api_service import RiotAPIService
 from app.service.riot.riot_get_service import RiotGetService
 from app.service.user.user_get_service import UserGetService
 from app.utility.error.errors import SummonerNotFound
@@ -10,31 +11,7 @@ from app.utility.error.errors import SummonerNotFound
 
 def to_summoner_type(summoner, user):
     summoner_model = SummonerType(
-        game_name="",
-        tag_line="",
-        profile_icon=0,
-        level=0,
-        solo_tier="",
-        solo_lp=0,
-        solo_wins=0,
-        solo_loses=0,
-        flex_tier="",
-        flex_lp=0,
-        flex_wins=0,
-        flex_loses=0,
         most_champions=[],
-        email="",
-        code=0,
-        nickname="",
-        name="",
-        role="",
-        is_graduate=False,
-        enrolled_at=0,
-        grade=0,
-        class_no=0,
-        student_no=0,
-        solo_point=0,
-        ranking=0,
     )
     if summoner is not None:
         summoner_model.game_name = summoner.game_name
@@ -71,6 +48,7 @@ class SummonerService:
     def __init__(self):
         self.user_get_service = UserGetService()
         self.riot_get_service = RiotGetService()
+        self.riot_api_service = RiotAPIService()
         self.summoner_repository = SummonerRepository()
         self.riot_repository = RiotRepository()
 
@@ -88,7 +66,8 @@ class SummonerService:
         )
 
     async def find_summoner_by_name(self, game_name: str, tag_line: str):
-        summoner = await self.summoner_repository.find_summoner_rank(game_name, tag_line)
+        account = await self.riot_api_service.get_riot_account_by_riotAPI(game_name, tag_line)
+        summoner = await self.summoner_repository.find_summoner_rank_by_puuid(account["puuid"])
         if summoner is None:
             raise SummonerNotFound(game_name=game_name, tag_line=tag_line)
         count = self.summoner_repository.find_summoner_count()
@@ -166,6 +145,7 @@ class SummonerService:
                     level=participant.level,
                     champion=participant.champion,
                     champion_level=participant.champion_level,
+                    lane=participant.lane,
                     spell1=participant.spell1,
                     spell2=participant.spell2,
                     main_perk=participant.main_perk,

@@ -30,6 +30,8 @@ class ThisWeekType:
     class_no: int
     student_no: int
 
+    ranking: int
+
     played_games: int
     win_games: int
     lose_games: int
@@ -46,4 +48,3 @@ class ThisWeekType:
     vision_score: int
     cs: int
 
-    ranking: int

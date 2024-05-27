@@ -1,11 +1,10 @@
 import os
-from typing import List, Annotated, Union
 import strawberry
 from strawberry.fastapi import GraphQLRouter
 from strawberry.schema.config import StrawberryConfig
 
-from app.controller.summoner.types.match_type import MatchType, MatchResponseType
-from app.controller.summoner.types.summoner_type import SummonerType, SummonerRankType
+from app.controller.summoner.types.match_type import MatchResponseType
+from app.controller.summoner.types.summoner_type import SummonerRankType
 from app.controller.summoner.types.this_week_type import ThisWeekType
 from app.repository.riot.riot_repository import RiotRepository
 from app.service.summoner.summoner_service import SummonerService
@@ -13,11 +12,6 @@ from app.service.summoner.summoner_service import SummonerService
 summoner_service = SummonerService()
 riot_repository = RiotRepository()
 season_started = os.getenv('SEASON_STARTED_TIME')
-
-# Response = Annotated[
-#     Union[RegisterUserSuccess, UsernameAlreadyExistsError],
-#     strawberry.union("RegisterUserResponse"),
-# ]
 
 
 @strawberry.type
@@ -38,10 +32,7 @@ class Query:
     async def matches(self, name: str, page: int = 0) -> MatchResponseType:
         return await summoner_service.get_matches(name, page)
 
-    @strawberry.field(description="원포올 API")
-    async def all_in_one(self, name: str, page: int = 0) -> SummonerRankType:
-        return await summoner_service.find()
-
 
 schema = strawberry.Schema(query=Query, config=StrawberryConfig(auto_camel_case=False))
 summoner_controller = GraphQLRouter(schema)
+

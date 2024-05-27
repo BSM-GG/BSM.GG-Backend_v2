@@ -26,6 +26,15 @@ class RiotAPIService:
         except Exception:
             raise NoVPN()
 
+    async def get_riot_account_by_puuid(self, puuid: str):
+        try:
+            response = requests.get(
+                f"{self.asia_riot_url}/account/v1/accounts/by-puuid/{puuid}?api_key={self.api_key}"
+            )
+            return json.loads(response.text)
+        except Exception:
+            raise NoVPN()
+
     async def get_summoner_info_by_riotAPI(self, puuid: str):
         try:
             response = requests.get(

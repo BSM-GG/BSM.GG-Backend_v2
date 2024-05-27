@@ -71,6 +71,35 @@ class SummonerRepository:
                 .filter(Summoner.tag_line == tag_line)
                 .first())
 
+    async def find_summoner_rank_by_puuid(self, puuid: str):
+        return (self.db.query(
+            Summoner.puuid,
+            Summoner.id,
+            Summoner.game_name,
+            Summoner.tag_line,
+            Summoner.profile_icon,
+            Summoner.level,
+            Summoner.solo_tier,
+            Summoner.solo_lp,
+            Summoner.solo_wins,
+            Summoner.solo_loses,
+            Summoner.flex_tier,
+            Summoner.flex_lp,
+            Summoner.flex_wins,
+            Summoner.flex_loses,
+            Summoner.most1,
+            Summoner.most2,
+            Summoner.most3,
+            Summoner.last_updated,
+            Summoner.solo_point,
+            func.rank().over(
+                order_by=Summoner.solo_point.desc(),
+                partition_by=Summoner.puuid
+            ).label("ranking"),
+        )
+                .filter(Summoner.puuid == puuid)
+                .first())
+
     async def find_lol_chang(self):
         now = int(str(time.time()).split('.')[0])
         summoner = (self.db.query(

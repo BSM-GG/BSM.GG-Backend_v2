@@ -18,12 +18,11 @@ engine = create_engine(
     f'mysql://{user_name}:{user_pw}@{db_host}/{db_name}?charset=utf8mb4',
     pool_pre_ping=True,
     pool_size=10,
+    pool_recycle=3600,
     max_overflow=20,
     # echo=True
 )
 SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
     bind=engine,
 )
 

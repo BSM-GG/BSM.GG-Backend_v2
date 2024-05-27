@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from app.domain.restapi.tables import Participant
 from app.repository.riot.riot_repository import RiotRepository
 from app.repository.user.user_repository import UserRepository
-from app.utility.mapping.name_mapping import QUEUE_TYPE, PERKS, SPELL_NAME
+from app.utility.mapping.name_mapping import QUEUE_TYPE, PERKS, SPELL_NAME, TEAM
 from app.service.riot.riot_api_service import RiotAPIService
 from app.service.riot.riot_get_service import RiotGetService
 from app.service.user.user_update_service import UserUpdateService
@@ -57,7 +57,6 @@ class RiotService:
         return summoner["id"]
 
     async def update_record(self, game_name: str, tag_line: str):
-
         summoner = await self.riot_get_service.get_summoner_by_game_name_and_tag_line(game_name, tag_line)
         if not summoner:
             raise SummonerNotFound(game_name=game_name, tag_line=tag_line)
@@ -97,11 +96,9 @@ class RiotService:
 
     async def save_participants(self, match_id, participants: list) -> list[dict]:
         summoners = []
+        cnt = 0
         for participant in participants:
             puuid = participant["puuid"]
-            if await self.riot_get_service.get_participant_by_puuid_and_match_id(puuid, match_id):
-                continue
-
             main_perks = participant["perks"]["styles"][0]["selections"]
             sub_perks = participant["perks"]["styles"][1]["selections"]
             db_participant = Participant(
@@ -110,7 +107,6 @@ class RiotService:
                 win=participant["win"],
                 champion=participant["championName"],
                 champion_level=participant["champLevel"],
-                lane=participant["lane"],
                 kill=participant["kills"],
                 assist=participant["assists"],
                 death=participant["deaths"],
@@ -152,8 +148,12 @@ class RiotService:
                 flex_perk=participant["perks"]["statPerks"]["flex"],
                 defense_perk=participant["perks"]["statPerks"]["defense"],
             )
+            if participant["lane"] != "NONE":
+                db_participant.lane = (cnt % 5)+1
+                db_participant.team = TEAM[cnt//5]
             self.riot_repository.save_participant(db_participant)
 
+            cnt += 1
             summoners.append({
                 "puuid": puuid,
                 "game_name": participant["riotIdGameName"],
